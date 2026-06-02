@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snip — URL Shortener</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f7f6f3;
+        --surface: #ffffff;
+        --border: #e4e2dc;
+        --border-strong: #c8c5bc;
+        --text: #1a1916;
+        --text-muted: #7a7870;
+        --text-faint: #b0ada5;
+        --accent: #1a1916;
+        --accent-fg: #f7f6f3;
+        --green: #2d7a4f;
+        --green-bg: #ebf5ef;
+        --red: #c0392b;
+        --red-bg: #fdecea;
+        --mono: "DM Mono", monospace;
+        --sans: "DM Sans", sans-serif;
+        --radius: 8px;
+        --radius-lg: 14px;
+      }
+
+      body {
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      /* NAV */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 40px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .logo {
+        font-family: var(--mono);
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: -0.5px;
+        color: var(--text);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .logo-dot {
+        width: 7px;
+        height: 7px;
+        background: var(--text);
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .nav-tabs {
+        display: flex;
+        gap: 2px;
+        background: var(--border);
+        padding: 3px;
+        border-radius: var(--radius);
+      }
+      .nav-tab {
+        padding: 6px 18px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 400;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-family: var(--sans);
+        transition: all 0.15s;
+      }
+      .nav-tab.active {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--text);
+        color: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+        font-family: var(--mono);
+        cursor: pointer;
+      }
+
+      /* PAGE WRAPPER */
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+
+      /* ==================== LANDING PAGE ==================== */
+      .landing-hero {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 80px 24px 60px;
+        text-align: center;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 12px;
+        font-family: var(--mono);
+        color: var(--text-muted);
+        margin-bottom: 32px;
+      }
+      .badge-dot {
+        width: 5px;
+        height: 5px;
+        background: var(--green);
+        border-radius: 50%;
+      }
+      h1 {
+        font-size: 52px;
+        font-weight: 300;
+        letter-spacing: -2px;
+        line-height: 1.1;
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+      h1 em {
+        font-style: italic;
+        font-weight: 300;
+      }
+      .hero-sub {
+        font-size: 16px;
+        color: var(--text-muted);
+        margin-bottom: 48px;
+        font-weight: 300;
+        line-height: 1.7;
+      }
+
+      /* INPUT CARD */
+      .shorten-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        text-align: left;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      }
+      .input-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .url-input {
+        flex: 1;
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .url-input:focus {
+        border-color: var(--text);
+      }
+      .url-input::placeholder {
+        color: var(--text-faint);
+      }
+      .btn-primary {
+        padding: 12px 24px;
+        background: var(--text);
+        color: var(--accent-fg);
+        border: none;
+        border-radius: var(--radius);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: opacity 0.15s;
+      }
+      .btn-primary:hover {
+        opacity: 0.85;
+      }
+
+      .options-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .option-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 140px;
+      }
+      .option-label {
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .option-input {
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+      }
+      .option-input:focus {
+        border-color: var(--text);
+      }
+      .option-input::placeholder {
+        color: var(--text-faint);
+      }
+
+      /* RESULT */
+      .result-box {
+        margin-top: 24px;
+        padding: 16px;
+        background: var(--green-bg);
+        border: 1px solid #a8d5b8;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        animation: fadeIn 0.3s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .result-url {
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--green);
+      }
+      .result-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-small {
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-family: var(--mono);
+        cursor: pointer;
+        border: 1px solid var(--border-strong);
+        background: var(--surface);
+        color: var(--text);
+        transition: background 0.15s;
+      }
+      .btn-small:hover {
+        background: var(--border);
+      }
+
+      /* STATS ROW */
+      .stats-row {
+        display: flex;
+        gap: 1px;
+        margin: 60px auto;
+        max-width: 680px;
+        padding: 0 24px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .stat-item {
+        flex: 1;
+        background: var(--surface);
+        padding: 24px 20px;
+        text-align: center;
+      }
+      .stat-num {
+        font-family: var(--mono);
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--text);
+        display: block;
+        letter-spacing: -1px;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-faint);
+        margin-top: 4px;
+        display: block;
+      }
+
+      /* ==================== DASHBOARD ==================== */
+      .dashboard-wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+      .dash-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+      }
+      .dash-title {
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+      }
+      .dash-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* QUICK SHORTEN MINI */
+      .quick-bar {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 32px;
+      }
+      .quick-bar .url-input {
+        background: var(--bg);
+        flex: 1;
+      }
+
+      /* STATS CARDS */
+      .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 32px;
+      }
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+      }
+      .stat-card-num {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -1px;
+        color: var(--text);
+      }
+      .stat-card-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .stat-card-change {
+        font-size: 11px;
+        font-family: var(--mono);
+        margin-top: 8px;
+        color: var(--green);
+      }
+
+      /* URL TABLE */
+      .table-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .table-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .filter-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .search-input {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 7px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+        width: 200px;
+      }
+      .search-input::placeholder {
+        color: var(--text-faint);
+      }
+
+      .url-table {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .table-head {
+        display: grid;
+        grid-template-columns: 1.8fr 1.2fr 80px 90px 110px 80px;
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .th {
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 400;
+      }
+      .table-row {
+        display: grid;
+        grid-template-columns: 1.8fr 1.2fr 80px 90px 110px 80px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        align-items: center;
+        transition: background 0.1s;
+      }
+      .table-row:last-child {
+        border-bottom: none;
+      }
+      .table-row:hover {
+        background: var(--bg);
+      }
+      .td {
+        font-size: 13px;
+        color: var(--text);
+      }
+      .td-mono {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .td-muted {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .short-link {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        text-decoration: none;
+      }
+      .short-link:hover {
+        text-decoration: underline;
+      }
+      .original-url {
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .url-cell {
+        overflow: hidden;
+      }
+
+      .clicks-bar-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .clicks-bar {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        flex: 1;
+        overflow: hidden;
+      }
+      .clicks-bar-fill {
+        height: 100%;
+        background: var(--text);
+        border-radius: 2px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-family: var(--mono);
+      }
+      .status-active {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .status-expired {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+
+      .row-actions {
+        display: flex;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .table-row:hover .row-actions {
+        opacity: 1;
+      }
+      .icon-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 13px;
+        transition: all 0.15s;
+      }
+      .icon-btn:hover {
+        background: var(--bg);
+        color: var(--text);
+        border-color: var(--border-strong);
+      }
+
+      /* EMPTY STATE */
+      .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+        color: var(--text-muted);
+      }
+      .empty-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        opacity: 0.4;
+      }
+      .empty-text {
+        font-size: 14px;
+      }
+
+      /* DIVIDER LINE */
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0 24px;
+      }
+
+      /* PAGINATION */
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--bg);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      }
+      .pagination-info {
+        font-size: 12px;
+        font-family: var(--mono);
+        color: var(--text-faint);
+      }
+      .pagination-btns {
+        display: flex;
+        gap: 4px;
+      }
+      .page-btn {
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 12px;
+        font-family: var(--mono);
+        cursor: pointer;
+        color: var(--text);
+        transition: background 0.1s;
+      }
+      .page-btn.active {
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
+      }
+      .page-btn:hover:not(.active) {
+        background: var(--border);
+      }
+
+      @media (max-width: 640px) {
+        nav {
+          padding: 16px 20px;
+        }
+        h1 {
+          font-size: 36px;
+        }
+        .stats-cards {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .table-head,
+        .table-row {
+          grid-template-columns: 1fr 80px 80px;
+        }
+        .th:nth-child(2),
+        .th:nth-child(4),
+        .th:nth-child(5),
+        .td:nth-child(2),
+        .td:nth-child(4),
+        .td:nth-child(5) {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a class="logo" href="main.html"> <span class="logo-dot"></span>snip </a>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showPage('landing')">Beranda</button>
+        <button class="nav-tab" onclick="showPage('dashboard')">Dashboard</button>
+      </div>
+      <div class="nav-right">
+        <div class="avatar">AB</div>
+      </div>
+    </nav>
+
+    <!-- ===================== LANDING PAGE ===================== -->
+    <div class="page active" id="page-landing">
+      <div class="landing-hero">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Gratis selamanya
+        </div>
+        <h1>Link panjang?<br /><em>Buat lebih pendek.</em></h1>
+        <p class="hero-sub">Persingkat URL dalam satu klik. Pantau berapa kali diklik,<br />kapan, dan dari mana saja.</p>
+
+        <div class="shorten-card">
+          <div class="input-row">
+            <input class="url-input" type="url" placeholder="https://contoh.com/url/yang/sangat/panjang/sekali" id="urlInput" />
+            <button class="btn-primary" onclick="shortenUrl()">Persingkat</button>
+          </div>
+          <div class="options-row">
+            <div class="option-group">
+              <span class="option-label">Slug kustom</span>
+              <input class="option-input" type="text" placeholder="nama-kustom" />
+            </div>
+            <div class="option-group">
+              <span class="option-label">Kedaluwarsa</span>
+              <input class="option-input" type="date" />
+            </div>
+            <div class="option-group">
+              <span class="option-label">Batas klik</span>
+              <input class="option-input" type="number" placeholder="Tidak terbatas" />
+            </div>
+          </div>
+
+          <div class="result-box" id="resultBox" style="display: none">
+            <span class="result-url" id="resultUrl">snip.io/abc123</span>
+            <div class="result-actions">
+              <button class="btn-small" onclick="copyUrl()">Salin</button>
+              <button class="btn-small">QR Code</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num">1.2M</span>
+          <span class="stat-label">URL dipersingkat</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">48M</span>
+          <span class="stat-label">Total klik</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">99.9%</span>
+          <span class="stat-label">Uptime</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <div class="page" id="page-dashboard">
+      <div class="dashboard-wrap">
+        <div class="dash-header">
+          <div>
+            <div class="dash-title">Link saya</div>
+            <div class="dash-subtitle">Kelola semua URL yang sudah dipersingkat</div>
+          </div>
+          <button class="btn-primary" onclick="showPage('landing')">+ Buat link baru</button>
+        </div>
+
+        <div class="quick-bar">
+          <input class="url-input" type="url" placeholder="Persingkat URL baru..." style="background: var(--bg)" />
+          <button class="btn-primary" style="padding: 10px 20px; font-size: 13px">Persingkat</button>
+        </div>
+
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-card-num">24</div>
+            <div class="stat-card-label">Total link</div>
+            <div class="stat-card-change">+3 minggu ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">8,432</div>
+            <div class="stat-card-label">Total klik</div>
+            <div class="stat-card-change">+12% vs bulan lalu</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">21</div>
+            <div class="stat-card-label">Link aktif</div>
+            <div class="stat-card-change" style="color: var(--text-faint)">3 kedaluwarsa</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">351</div>
+            <div class="stat-card-label">Klik hari ini</div>
+            <div class="stat-card-change">+8% vs kemarin</div>
+          </div>
+        </div>
+
+        <div class="table-header">
+          <span class="table-title">Semua link</span>
+          <div class="filter-row">
+            <input class="search-input" type="text" placeholder="Cari link..." />
+          </div>
+        </div>
+
+        <div class="url-table">
+          <div class="table-head">
+            <span class="th">Link pendek</span>
+            <span class="th">URL asli</span>
+            <span class="th">Klik</span>
+            <span class="th">Status</span>
+            <span class="th">Dibuat</span>
+            <span class="th">Aksi</span>
+          </div>
+
+          <!-- Row 1 -->
+          <div class="table-row">
+            <div class="url-cell">
+              <a class="short-link" href="#">snip.io/go-docs</a>
+            </div>
+            <div class="url-cell">
+              <span class="original-url">https://go.dev/doc/effective_go</span>
+            </div>
+            <div class="td">
+              <div class="clicks-bar-wrap">
+                <span class="td-mono">2,841</span>
+                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 85%"></div></div>
+              </div>
+            </div>
+            <div class="td"><span class="status-pill status-active">● aktif</span></div>
+            <div class="td td-muted">12 Mei 2026</div>
+            <div class="td row-actions">
+              <button class="icon-btn" title="Salin">⎘</button>
+              <button class="icon-btn" title="Hapus">✕</button>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="table-row">
+            <div class="url-cell">
+              <a class="short-link" href="#">snip.io/portfolio</a>
+            </div>
+            <div class="url-cell">
+              <span class="original-url">https://myportfolio.vercel.app/about-me-and-my-projects</span>
+            </div>
+            <div class="td">
+              <div class="clicks-bar-wrap">
+                <span class="td-mono">1,204</span>
+                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 36%"></div></div>
+              </div>
+            </div>
+            <div class="td"><span class="status-pill status-active">● aktif</span></div>
+            <div class="td td-muted">5 Mei 2026</div>
+            <div class="td row-actions">
+              <button class="icon-btn" title="Salin">⎘</button>
+              <button class="icon-btn" title="Hapus">✕</button>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="table-row">
+            <div class="url-cell">
+              <a class="short-link" href="#">snip.io/htmx-intro</a>
+            </div>
+            <div class="url-cell">
+              <span class="original-url">https://htmx.org/docs/#introduction</span>
+            </div>
+            <div class="td">
+              <div class="clicks-bar-wrap">
+                <span class="td-mono">987</span>
+                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 29%"></div></div>
+              </div>
+            </div>
+            <div class="td"><span class="status-pill status-active">● aktif</span></div>
+            <div class="td td-muted">28 Apr 2026</div>
+            <div class="td row-actions">
+              <button class="icon-btn" title="Salin">⎘</button>
+              <button class="icon-btn" title="Hapus">✕</button>
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="table-row">
+            <div class="url-cell">
+              <a class="short-link" href="#">snip.io/promo-lebaran</a>
+            </div>
+            <div class="url-cell">
+              <span class="original-url">https://tokopedia.com/promo/lebaran-2026/semua-kategori</span>
+            </div>
+            <div class="td">
+              <div class="clicks-bar-wrap">
+                <span class="td-mono">3,241</span>
+                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 96%"></div></div>
+              </div>
+            </div>
+            <div class="td"><span class="status-pill status-expired">○ expired</span></div>
+            <div class="td td-muted">1 Apr 2026</div>
+            <div class="td row-actions">
+              <button class="icon-btn" title="Salin">⎘</button>
+              <button class="icon-btn" title="Hapus">✕</button>
+            </div>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="table-row">
+            <div class="url-cell">
+              <a class="short-link" href="#">snip.io/gin-github</a>
+            </div>
+            <div class="url-cell">
+              <span class="original-url">https://github.com/gin-gonic/gin</span>
+            </div>
+            <div class="td">
+              <div class="clicks-bar-wrap">
+                <span class="td-mono">159</span>
+                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 5%"></div></div>
+              </div>
+            </div>
+            <div class="td"><span class="status-pill status-active">● aktif</span></div>
+            <div class="td td-muted">17 Mei 2026</div>
+            <div class="td row-actions">
+              <button class="icon-btn" title="Salin">⎘</button>
+              <button class="icon-btn" title="Hapus">✕</button>
+            </div>
+          </div>
+
+          <div class="pagination">
+            <span class="pagination-info">Menampilkan 1–5 dari 24 link</span>
+            <div class="pagination-btns">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showPage(name) {
+        document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+        document.querySelectorAll(".nav-tab").forEach((t) => t.classList.remove("active"));
+        document.getElementById("page-" + name).classList.add("active");
+        const tabs = document.querySelectorAll(".nav-tab");
+        if (name === "landing") tabs[0].classList.add("active");
+        else tabs[1].classList.add("active");
+      }
+
+      const slugs = ["abc123", "xyz789", "q1w2e3", "snip42", "go2024"];
+      function shortenUrl() {
+        const input = document.getElementById("urlInput").value;
+        if (!input) return;
+        const slug = slugs[Math.floor(Math.random() * slugs.length)];
+        document.getElementById("resultUrl").textContent = "snip.io/" + slug;
+        document.getElementById("resultBox").style.display = "flex";
+      }
+
+      function copyUrl() {
+        const url = document.getElementById("resultUrl").textContent;
+        navigator.clipboard.writeText("https://" + url).catch(() => {});
+        const btn = event.target;
+        btn.textContent = "Tersalin!";
+        setTimeout(() => (btn.textContent = "Salin"), 1500);
+      }
+    </script>
+  </body>
+</html>
