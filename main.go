@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"database/sql"
 	"fmt"
 	"log"
@@ -29,6 +30,10 @@ func initDB() {
 	if err != nil {
 		log.Fatal("Cannot reach database:", err)
 	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal("Cannot reach database:", err)
+	}
 
 	fmt.Println("Database connected successfully!")
 }
@@ -38,13 +43,18 @@ func main() {
 
 	r := gin.Default()
 
+	//Load template
+	r.LoadHTMLGlob("templates/*")
+
 	r.GET("/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 
 		var originalURL string
 		err := db.QueryRow("SELECT original_url FROM links WHERE slug = $1", slug).Scan(&originalURL)
 		if err != nil {
-			c.JSON(404, gin.H{"error": "Link tidak ditemukan"})
+			//Load 404 html
+			c.HTML(http.StatusNotFound, "404.html", gin.H{"Slug": slug,
+			})
 			return
 		}
 
