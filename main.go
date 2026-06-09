@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -50,10 +51,20 @@ func main() {
 		slug := c.Param("slug")
 
 		var originalURL string
-		err := db.QueryRow("SELECT original_url FROM links WHERE slug = $1", slug).Scan(&originalURL)
+		var expiredAt sql.NullTime
+
+		err := db.QueryRow("SELECT original_url, expired_at FROM links WHERE slug = $1", slug).Scan(&originalURL, &expiredAt)
 		if err != nil {
 			//Load 404 html
 			c.HTML(http.StatusNotFound, "404.html", gin.H{"Slug": slug,
+			})
+			return
+		}
+
+		//check link expired
+		if expiredAt.Valid && expiredAt.Time.Before(time.Now()){
+			c.HTML(http.StatusGone, "expired.html", gin.H{
+				"Slug": slug,
 			})
 			return
 		}
