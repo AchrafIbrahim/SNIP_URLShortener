@@ -1,16 +1,17 @@
 package main
 
 import (
-	"net/http"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_"github.com/lib/pq"
+
+	"github.com/AchrafIbrahim/SNIP_URLShortener/handlers"
+	"github.com/AchrafIbrahim/SNIP_URLShortener/middleware"
 )
 
 var db *sql.DB
@@ -29,7 +30,7 @@ func initDB() {
 	)
 	db, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Cannot reach database:", err)
+		log.Fatal("Error connecting to database:", err)
 	}
 	err = db.Ping()
 	if err != nil {
@@ -42,35 +43,25 @@ func initDB() {
 func main() {
 	initDB()
 
+	//pass DB to handlers
+	handlers.DB = db
+
 	r := gin.Default()
 
 	//Load template
 	r.LoadHTMLGlob("templates/*")
 
-	r.GET("/:slug", func(c *gin.Context) {
-		slug := c.Param("slug")
+	//Public Routes
+	r.GET("/:slug", handlers.Redirect)
+	r.POST("/register", handlers.Register)
+	r.POST("/login", handlers.Login)
 
-		var originalURL string
-		var expiredAt sql.NullTime
-
-		err := db.QueryRow("SELECT original_url, expired_at FROM links WHERE slug = $1", slug).Scan(&originalURL, &expiredAt)
-		if err != nil {
-			//Load 404 html
-			c.HTML(http.StatusNotFound, "404.html", gin.H{"Slug": slug,
-			})
-			return
-		}
-
-		//check link expired
-		if expiredAt.Valid && expiredAt.Time.Before(time.Now()){
-			c.HTML(http.StatusGone, "expired.html", gin.H{
-				"Slug": slug,
-			})
-			return
-		}
-
-		c.Redirect(302, originalURL)
-	})
+	//Protected Routes
+	auth := r.Group("/api")
+	auth.Use(middleware.AuthRequired)
+	{
+		//Route dashboard here
+	}
 
 	r.Run(":9090")
 }

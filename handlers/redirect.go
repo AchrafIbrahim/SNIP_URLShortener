@@ -3,20 +3,21 @@ package handlers
 import (
 	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 var DB *sql.DB
 
-func redirect(c *gin.Context){
+func Redirect(c *gin.Context){
 	slug := c.Param("slug")
 
 	var originalURL string
 	var expiredAt sql.NullTime
 
 	err := DB.QueryRow(
-		"SELECT original_url, expired_at FROM links WHERE slug = $1", slug
+		"SELECT original_url, expired_at FROM links WHERE slug = $1", slug,
 	).Scan(&originalURL, &expiredAt)
 
 	if err != nil {
