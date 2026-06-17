@@ -55,6 +55,7 @@ func main() {
 	r.GET("/:slug", handlers.Redirect)
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
+	r.POST("/shorten", handlers.Shorten)
 
 	//Protected Routes
 	auth := r.Group("/api")
