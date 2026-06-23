@@ -55,13 +55,17 @@ func main() {
 	r.GET("/:slug", handlers.Redirect)
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
-	r.POST("/shorten", handlers.Shorten)
 
 	//Protected Routes
 	auth := r.Group("/api")
 	auth.Use(middleware.AuthRequired)
 	{
 		//Route dashboard here
+		auth.GET("/me", func(c *gin.Context) {
+       		userID := c.MustGet("user_id")
+        	c.JSON(200, gin.H{"user_id": userID})
+   		})
+		auth.POST("/shorten", handlers.Shorten)
 	}
 
 	r.Run(":9090")

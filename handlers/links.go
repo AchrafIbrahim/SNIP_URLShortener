@@ -33,13 +33,16 @@ func Shorten(c *gin.Context) {
 		return
 	}
 
+	// Ambil user_id dari token
+	userID := c.MustGet("user_id")
+
 	// Generate slug random character
 	slug := generateSlug(6)
 
 	// Save to DB
 	_, err := DB.Exec(
-		"INSERT INTO links (slug, original_url) VALUES ($1, $2)",
-		slug, input.URL,
+		"INSERT INTO links (slug, original_url, user_id) VALUES ($1, $2, $3)",
+		slug, input.URL, userID,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan link"})
