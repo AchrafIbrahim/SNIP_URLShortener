@@ -4,6 +4,8 @@ import(
 	"math/rand"
 	"net/http"
 	"strings"
+	"time"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,4 +56,43 @@ func Shorten(c *gin.Context) {
 		"short_url":  	"http://localhost:9090/" + slug,
 		"original_url": input.URL,
 	})
+}
+
+func GetLinks(c *gin.Context){
+	userID := c.MustGet("user_id")
+	
+	rows, err := DB.Query(
+		"SELECT id, slug, original_url, clicks, expired_at, created_at FROM links WHERE user_id = $1 ORDER BY created_at DESC",
+		userID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data link"})
+		return
+	}
+	defer rows.Close()
+
+	var links []gin.H
+	for rows.Next(){
+		var id int
+		var slug, originalURL string
+		var clicks int
+		var expiredAt sql.NullTime
+		var createdAt time.Time
+
+		err := rows.Scan(&id, &slug, &originalURL, &clicks, &expiredAt, &createdAt)
+		if err != nil{
+			continue
+		}
+
+		links = append(links, gin.H{
+			"id":           id,
+			"slug":         slug,
+			"original_url": originalURL,
+			"short_url":    "http://localhost:9090/" + slug,
+			"clicks":       clicks,
+			"created_at":   createdAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"links": links})
 }

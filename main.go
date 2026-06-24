@@ -66,6 +66,7 @@ func main() {
         	c.JSON(200, gin.H{"user_id": userID})
    		})
 		auth.POST("/shorten", handlers.Shorten)
+		auth.GET("/links", handlers.GetLinks)
 	}
 
 	r.Run(":9090")
