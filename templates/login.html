@@ -4,52 +4,253 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/tabler-icons.min.css" />
+
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
+        font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .login-card {
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 14px;
+        padding: 32px 28px;
+        width: 320px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .login-icon {
+        width: 40px;
+        height: 40px;
+        background-color: #1a1a1a;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 12px;
+        color: white;
+        font-size: 18px;
+      }
+
+      .login-icon i {
+        color: white;
+        font-size: 18px;
+      }
+
+      .login-header h3 {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .login-header p {
+        font-size: 13px;
+        color: #7a7a7a;
+        margin-bottom: 24px;
       }
 
       form {
-      }
-
-      .login-header {
+        width: 100%;
       }
 
       .form-input-email,
       .form-input-password {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 14px;
+        width: 100%;
+      }
+
+      label {
+        font-size: 13px;
+        color: #7a7a7a;
       }
 
       input {
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 100%;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #1a1a1a;
+      }
+
+      .password-wrapper {
+        position: relative;
+        width: 100%;
+      }
+
+      .password-wrapper input {
+        padding-right: 40px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
       }
 
       .btn-forgetpassword {
+        text-align: right;
+        margin-bottom: 18px;
       }
+
+      .btn-forgetpassword a {
+        font-size: 12px;
+        color: #7a7a7a;
+        text-decoration: none;
+      }
+
+      .btn-login button {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-bottom: 16px;
+      }
+
+      .btn-login-snip {
+        background-color: #1a1a1a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+      }
+
+      .btn-login-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: #333333;
+        gap: 5px;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .btn-login-google:hover {
+        box-shadow: 0 0 0 1px #d0d0d0;
+        margin-bottom: 16px;
+      }
+
+      .btn-login button:hover {
+        opacity: 0.85;
+      }
+
       .btn-to-register {
+        text-align: center;
+      }
+
+      .btn-to-register p {
+        font-size: 13px;
+        color: #7a7a7a;
+      }
+
+      .btn-to-register a {
+        color: #1a1a1a;
+        font-weight: 500;
+        text-decoration: none;
+        margin-left: 4px;
       }
     </style>
   </head>
   <body>
-    <div class="login-header">
-      <h3>Masuk ke Snip</h3>
-      <p>Kelola semua link pendekmu</p>
+    <script>
+      function togglepassword() {
+        const input = document.getElementById("password");
+        const eyeOpen = document.getElementById("eye-open");
+        const eyeClosed = document.getElementById("eye-closed");
+        const isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+        eyeOpen.style.display = isPassword ? "none" : "block";
+        eyeClosed.style.display = isPassword ? "block" : "none";
+      }
+    </script>
+    <div class="login-card">
+      <div class="login-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+      </div>
+      <div class="login-header">
+        <h3>Masuk ke Snip</h3>
+        <p>Kelola semua link pendekmu</p>
+      </div>
+      <form action="">
+        <div class="form-input-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" />
+        </div>
+        <div class="form-input-password">
+          <label for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" name="password" id="password" />
+            <span class="toggle-password" onclick="togglepassword()">
+              <svg id="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="btn-forgetpassword">
+          <a href="#">lupa password?</a>
+        </div>
+        <div class="btn-login">
+          <button type="submit" class="btn-login-snip">Masuk</button>
+          <button type="submit" class="btn-login-google">
+            <svg width="18" height="18" viewBox="0 0 48 48">
+              <path
+                fill="#FFC107"
+                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+              />
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+            </svg>
+            Masuk dengan google
+          </button>
+        </div>
+        <div class="btn-to-register">
+          <p>Belum punya akun?<a href="register.html">daftar disini</a></p>
+        </div>
+      </form>
     </div>
-    <form action="">
-      <div class="form-input-email">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" />
-      </div>
-      <div class="form-input-password">
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password" />
-      </div>
-      <div class="btn-forgetpassword">
-        <a href="#">lupa password?</a>
-      </div>
-      <div class="btn-login">
-        <button type="submit">masuk</button>
-      </div>
-      <div class="btn-to-register">
-        <p>Belum punya akun?<a href="">daftar disini</a></p>
-      </div>
-    </form>
   </body>
 </html>
