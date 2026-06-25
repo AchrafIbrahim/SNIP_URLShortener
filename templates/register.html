@@ -181,6 +181,39 @@
         text-decoration: none;
         margin-left: 4px;
       }
+
+      .check-term-condition {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .check-term-condition {
+        width: auto;
+      }
+
+      .check-term-condition label {
+        font-size: 12px;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 5px;
+      }
+
+      .divider-line {
+        flex: content;
+        height: 0.5px;
+        background-color: #7a7a7a;
+      }
+
+      .divider span {
+        font-size: 12px;
+        color: #7a7a7a;
+      }
     </style>
   </head>
   <body>
@@ -207,6 +240,10 @@
         <p>Mulai persingkat link dalam hitungan detik</p>
       </div>
       <form action="">
+        <div class="form-input-name">
+          <label for="name">Name</label>
+          <input type="name" id="name" name="name" />
+        </div>
         <div class="form-input-email">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" />
@@ -229,11 +266,35 @@
             </span>
           </div>
         </div>
-        <div class="btn-forgetpassword">
-          <a href="#">lupa password?</a>
+        <div class="form-input-confirm-password">
+          <label for="password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" name="password" id="password" />
+            <span class="toggle-password" onclick="togglepassword()">
+              <svg id="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="check-term-condition">
+          <input type="checkbox" name="checkbox" id="checkbox" />
+          <label for="checkbox">Saya menyetujui syarat & ketentuan serta kebijakan privasi</label>
         </div>
         <div class="btn-register">
-          <button type="submit" class="btn-register-snip">Masuk</button>
+          <button type="submit" class="btn-register-snip">Daftar</button>
+          <div class="divider">
+            <div class="divider-line"></div>
+            <span>atau</span>
+            <div class="divider-line"></div>
+          </div>
           <button type="submit" class="btn-register-google">
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path
@@ -248,7 +309,7 @@
           </button>
         </div>
         <div class="btn-to-register">
-          <p>Belum punya akun?<a href="register.html">daftar disini</a></p>
+          <p>Sudah punya akun?<a href="login.html">Masuk disini</a></p>
         </div>
       </form>
     </div>
