@@ -33,6 +33,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        margin: 20px;
       }
 
       .register-icon {
@@ -73,7 +74,9 @@
       }
 
       .form-input-email,
-      .form-input-password {
+      .form-input-password,
+      .form-input-name,
+      .form-input-password-confirm {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -135,7 +138,6 @@
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
-        margin-bottom: 16px;
       }
 
       .btn-register-snip {
@@ -155,11 +157,11 @@
         border: none;
         border-radius: 8px;
         padding: 12px;
+        margin-bottom: 16px;
       }
 
       .btn-register-google:hover {
         box-shadow: 0 0 0 1px #d0d0d0;
-        margin-bottom: 16px;
       }
 
       .btn-register button:hover {
@@ -184,13 +186,21 @@
 
       .check-term-condition {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        margin-top: 10px;
+        width: 100%;
       }
 
-      .check-term-condition {
+      .check-term-condition input[type="checkbox"] {
         width: auto;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        flex-shrink: 0;
+        margin-top: 3px;
+        accent-color: #1a1a1a;
       }
 
       .check-term-condition label {
@@ -201,13 +211,15 @@
         display: flex;
         align-items: center;
         gap: 5px;
-        margin: 5px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        width: 100%;
       }
 
       .divider-line {
-        flex: content;
-        height: 0.5px;
-        background-color: #7a7a7a;
+        flex: 1;
+        height: 1px;
+        background-color: #e0e0e0;
       }
 
       .divider span {
@@ -218,10 +230,10 @@
   </head>
   <body>
     <script>
-      function togglepassword() {
-        const input = document.getElementById("password");
-        const eyeOpen = document.getElementById("eye-open");
-        const eyeClosed = document.getElementById("eye-closed");
+      function togglepassword(inputId, openId, closeId) {
+        const input = document.getElementById(inputId);
+        const eyeOpen = document.getElementById(openId);
+        const eyeClosed = document.getElementById(closeId);
         const isPassword = input.type === "password";
         input.type = isPassword ? "text" : "password";
         eyeOpen.style.display = isPassword ? "none" : "block";
@@ -252,7 +264,7 @@
           <label for="password">Password</label>
           <div class="password-wrapper">
             <input type="password" name="password" id="password" />
-            <span class="toggle-password" onclick="togglepassword()">
+            <span class="toggle-password" onclick="togglepassword('password', 'eye-open', 'eye-closed')">
               <svg id="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -269,13 +281,13 @@
         <div class="form-input-confirm-password">
           <label for="password">Confirm Password</label>
           <div class="password-wrapper">
-            <input type="password" name="password" id="password" />
-            <span class="toggle-password" onclick="togglepassword()">
-              <svg id="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <input type="password" name="confirm-password" id="confirm-password" />
+            <span class="toggle-password" onclick="togglepassword('confirm-password', 'eye-open-confirm', 'eye-closed-confirm')">
+              <svg id="eye-open-confirm" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
-              <svg id="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
+              <svg id="eye-closed-confirm" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
                 <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
                 <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
                 <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
@@ -295,7 +307,7 @@
             <span>atau</span>
             <div class="divider-line"></div>
           </div>
-          <button type="submit" class="btn-register-google">
+          <button type="button" class="btn-register-google">
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path
                 fill="#FFC107"
