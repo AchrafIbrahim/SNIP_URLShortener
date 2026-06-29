@@ -82,6 +82,7 @@
         gap: 4px;
         margin-bottom: 14px;
         width: 100%;
+        /*position: relative; floating error message*/
       }
 
       label {
@@ -226,6 +227,25 @@
         font-size: 12px;
         color: #7a7a7a;
       }
+
+      #email-error,
+      #password-error,
+      #password-confirm-error {
+        font-size: 12px;
+        color: #c0392b;
+        margin-top: 4px;
+        display: block;
+      }
+
+      /*.error-message {
+        position: absolute;
+        top: 100%;  tepat di bawah parent
+        left: 0;
+        font-size: 12px;
+        color: #c0392b;
+        margin-top: 2px;
+        white-space: nowrap; /* coba pikirkan kegunaannya 
+      }*/
     </style>
   </head>
   <body>
@@ -239,6 +259,52 @@
         eyeOpen.style.display = isPassword ? "none" : "block";
         eyeClosed.style.display = isPassword ? "block" : "none";
       }
+
+      function validateEmail() {
+        const email = document.getElementById("email").value;
+        const emailpattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const errorMsg = document.getElementById("email-error");
+
+        if (!emailpattern.test(email)) {
+          errorMsg.textContent = "Invalid email format";
+        } else {
+          errorMsg.textContent = "";
+        }
+      }
+
+      function validatePassword() {
+        const password = document.getElementById("password").value;
+        const errorMsg = document.getElementById("password-error");
+
+        if (password.length < 6) {
+          errorMsg.textContent = "Password length minimum 6 characters";
+        } else {
+          errorMsg.textContent = "";
+        }
+      }
+
+      function checkPasswordMatch() {
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
+        const errorMsg = document.getElementById("password-confirm-error");
+
+        if (password !== confirmPassword) {
+          errorMsg.textContent = "Password tidak cocok";
+        } else {
+          errorMsg.textContent = "";
+        }
+      }
+
+      function validateForm() {
+        const checkbox = document.getElementById("checkbox");
+
+        if (!checkbox.checked) {
+          alert("Kamu harus menyetujui syarat & ketentuan terlebih dahulu");
+          return false;
+        } else {
+          return true;
+        }
+      }
     </script>
     <div class="register-card">
       <div class="register-icon">
@@ -251,19 +317,20 @@
         <h3>Buat akun Snip</h3>
         <p>Mulai persingkat link dalam hitungan detik</p>
       </div>
-      <form action="">
+      <form action="" onsubmit="return validateForm();">
         <div class="form-input-name">
           <label for="name">Name</label>
           <input type="name" id="name" name="name" />
         </div>
         <div class="form-input-email">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" />
+          <input type="email" id="email" name="email" onkeyup="validateEmail()" />
+          <span id="email-error"></span>
         </div>
         <div class="form-input-password">
           <label for="password">Password</label>
           <div class="password-wrapper">
-            <input type="password" name="password" id="password" />
+            <input type="password" name="password" id="password" onkeyup="validatePassword()" />
             <span class="toggle-password" onclick="togglepassword('password', 'eye-open', 'eye-closed')">
               <svg id="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -277,11 +344,12 @@
               </svg>
             </span>
           </div>
+          <span id="password-error"></span>
         </div>
         <div class="form-input-confirm-password">
           <label for="password">Confirm Password</label>
           <div class="password-wrapper">
-            <input type="password" name="confirm-password" id="confirm-password" />
+            <input type="password" name="confirm-password" id="confirm-password" onkeyup="checkPasswordMatch()" />
             <span class="toggle-password" onclick="togglepassword('confirm-password', 'eye-open-confirm', 'eye-closed-confirm')">
               <svg id="eye-open-confirm" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -295,6 +363,7 @@
               </svg>
             </span>
           </div>
+          <span id="password-confirm-error"></span>
         </div>
         <div class="check-term-condition">
           <input type="checkbox" name="checkbox" id="checkbox" />
