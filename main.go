@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -51,8 +52,37 @@ func main() {
 	//Load template
 	r.LoadHTMLGlob("templates/*")
 
+	//HTML Routes
+	r.GET("/login", func(c *gin.Context){
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+	r.GET("/register", func(c *gin.Context){
+		c.HTML(http.StatusOK, "register.html", nil)
+	})
+	r.GET("/main", func(c *gin.Context){
+		c.HTML(http.StatusOK, "main.html", nil)
+	})
+	r.GET("/forgot-password", func(c *gin.Context){
+		c.HTML(http.StatusOK, "forget_password.html", nil)
+	})
+	r.GET("/email-check-reset-password", func(c *gin.Context){
+		c.HTML(http.StatusOK, "email_check_reset_password.html", nil)
+	})
+	r.GET("/expired", func(c *gin.Context){
+		c.HTML(http.StatusOK, "expired.html", nil)
+	})
+	r.GET("/link-reset-expired", func(c *gin.Context){
+		c.HTML(http.StatusOK, "link_reset_expired.html", nil)
+	})
+	r.GET("/new-password", func(c *gin.Context){
+		c.HTML(http.StatusOK, "new_password.html", nil)
+	})
+	r.GET("/success-reset-password", func(c *gin.Context){
+		c.HTML(http.StatusOK, "success_reset_password.html", nil)
+	})
+
 	//Public Routes
-	r.GET("/:slug", handlers.Redirect)
+	
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
 
@@ -68,6 +98,9 @@ func main() {
 		auth.POST("/shorten", handlers.Shorten)
 		auth.GET("/links", handlers.GetLinks)
 	}
+
+	//Redirect
+	r.GET("/:slug", handlers.Redirect)
 
 	r.Run(":9090")
 }

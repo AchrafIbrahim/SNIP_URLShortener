@@ -665,6 +665,12 @@
     </style>
   </head>
   <body>
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "/login";
+      }
+    </script>
     <nav>
       <a class="logo" href="main.html"> <span class="logo-dot"></span>snip </a>
       <div class="nav-tabs">

@@ -206,6 +206,12 @@
           btn.textContent = "Masuk";
         }, 2000);
       }*/
+
+      function handleLoginSubmit() {
+        localStorage.setItem("token", "fake-token-123");
+        window.location.href = "/main";
+        return false;
+      }
     </script>
     <div class="login-card">
       <div class="login-icon">
@@ -218,7 +224,7 @@
         <h3>Masuk ke Snip</h3>
         <p>Kelola semua link pendekmu</p>
       </div>
-      <form action="">
+      <form action="" onsubmit="return handleLoginSubmit();">
         <div class="form-input-email">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" />
