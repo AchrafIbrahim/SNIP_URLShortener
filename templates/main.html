@@ -97,10 +97,10 @@
         color: var(--text);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
       }
-      .nav-right {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+
+      /* ==================== PROFILE ==================== */
+      .avatar-wrapper {
+        position: relative;
       }
       .avatar {
         width: 32px;
@@ -115,6 +115,76 @@
         font-weight: 500;
         font-family: var(--mono);
         cursor: pointer;
+      }
+
+      /* Dropdown container */
+      .dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        width: 200px;
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        z-index: 100;
+        overflow: hidden;
+      }
+
+      /* Info user di bagian atas */
+      .dropdown-user-info {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .dropdown-name {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        color: #1a1a1a;
+      }
+
+      .dropdown-email {
+        font-size: 12px;
+        color: #7a7a7a;
+        margin: 0;
+      }
+
+      /* Area menu items */
+      .dropdown-menu-items {
+        padding: 6px 0;
+      }
+
+      /* Setiap item menu */
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        font-size: 13px;
+        color: #1a1a1a;
+        cursor: pointer;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f5f5f5;
+      }
+
+      /* Item logout — warna merah */
+      .dropdown-logout {
+        padding: 9px 14px;
+        color: #c0392b;
+      }
+
+      .dropdown-logout .dropdown-item:hover {
+        background-color: #fdecea;
+      }
+
+      /* Garis pemisah */
+      .dropdown-divider {
+        height: 1px;
+        background-color: #e0e0e0;
       }
 
       /* PAGE WRAPPER */
@@ -670,6 +740,29 @@
       if (!token) {
         window.location.href = "/login";
       }
+
+      function toggleDropdown() {
+        const dropdown = document.getElementById("dropdown");
+
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+
+      document.addEventListener("click", function (e) {
+        const wrapper = document.querySelector(".avatar-wrapper");
+
+        if (!wrapper.contains(e.target)) {
+          document.getElementById("dropdown").style.display = "none";
+        }
+      });
+
+      function handleLogout() {
+        localStorage.clear();
+        window.location.href = "/login";
+      }
     </script>
     <nav>
       <a class="logo" href="/main"> <span class="logo-dot"></span>snip </a>
@@ -679,8 +772,41 @@
       </div>
 
       <!-- === PROFIL === -->
-      <div class="nav-right">
-        <div class="avatar">AB</div>
+      <div class="avatar-wrapper">
+        <div class="avatar" id="avatar" onclick="toggleDropdown()">AB</div>
+        <div class="dropdown" id="dropdown">
+          <div class="dropdown-user-info">
+            <p class="dropdown-name">Ibrah Maula Setya Aji</p>
+            <p class="dropdown-email">ibrahaji01@gmail.com</p>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-menu-items">
+            <div class="dropdown-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Profil saya</span>
+            </div>
+            <div class="dropdown-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span>Bahasa</span>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item dropdown-logout" onclick="handleLogout()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Keluar</span>
+          </div>
+        </div>
       </div>
     </nav>
 
