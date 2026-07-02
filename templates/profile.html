@@ -48,6 +48,13 @@
 
       .basic-info-email{
       }
+
+      .field-name,
+      .field-email{
+      }
+
+      .btn-change-profil{
+      }
       */
     </style>
   </head>
@@ -81,15 +88,61 @@
           </div>
         </div>
         <form action="">
-          <div class="basic-info-form-name">
+          <div class="field-name">
             <label for="name">Nama</label>
             <input type="text" id="nama" name="nama" value="Ibrah" />
           </div>
-          <div class="basic-info-form-email">
+          <div class="field-email">
             <label for="email">Email</label>
             <input type="email" name="email" id="email" disabled />
+            <p>Email tidak dapat diubah</p>
           </div>
+          <button type="submit" class="btn-change-profile">Simpan Perubahan</button>
         </form>
+      </div>
+      <div class="profile-card-change-password">
+        <h5>Ganti Password</h5>
+        <div class="divider"></div>
+        <form action="">
+          <div class="field-password">
+            <label for="current-password">Password saat ini</label>
+            <input type="password" id="current-password" name="current-password" />
+          </div>
+          <div class="field-new-password">
+            <label for="new-password">Password baru</label>
+            <input type="password" name="new-password" id="new-password" />
+          </div>
+          <div class="field-confirm-new-password">
+            <label for="confirm-new-password">Konfirmasi password baru</label>
+            <input type="password" name="confirm-new-password" id="confirm-new-password" />
+          </div>
+          <button type="submit" class="btn-change-password">Ganti password</button>
+        </form>
+      </div>
+      <div class="profile-card-statistics">
+        <h5>Statistik akun</h5>
+        <div class="divider"></div>
+        <div class="total-link">
+          <p>24</p>
+          <label for="total-link">Total link</label>
+        </div>
+        <div class="total-klik">
+          <p>8.4K</p>
+          <label for="total-klik">Total klik</label>
+        </div>
+        <div class="link-aktif">
+          <p>21</p>
+          <label for="link-aktif">Link aktif</label>
+        </div>
+      </div>
+      <div class="profile-card-deleteaccount">
+        <h5>Danger Zone</h5>
+        <div class="divider"></div>
+        <div class="hapus-akun">
+          <h5>Hapus akun</h5>
+          <p>Semua link dan data kamu akan dihapus permanen. Tindakan ini tidak bisa dibatalkan</p>
+          <button type="submit" class="btn-hapus-akun">Hapus akun</button>
+        </div>
       </div>
     </div>
   </body>
