@@ -229,7 +229,7 @@
 
           if (response.ok) {
             //login success
-            localStorage.setItem("token", data.token);
+            sessionStorage.setItem("token", data.token);
             window.location.href = "/main";
           } else {
             //login failure
@@ -242,7 +242,7 @@
         return false;
 
         //Login with fake token (Simulation)
-        /*localStorage.setItem("token", "fake-token-123");
+        /*sessionStorage.setItem("token", "fake-token-123");
         window.location.href = "/main";
         return false;*/
       }

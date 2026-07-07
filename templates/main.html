@@ -751,7 +751,7 @@
   </head>
   <body>
     <script>
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         window.location.href = "/login";
       }
@@ -775,17 +775,17 @@
       });
 
       function handleLogout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/login";
       }
 
       function toggleLanguage() {
         const badge = document.getElementById("lang-badge");
         badge.textContent = badge.textContent === "ID" ? "EN" : "ID";
-        localStorage().setItem("language", badge.textContent);
+        sessionStorage().setItem("language", badge.textContent);
       }
 
-      const savedLang = localStorage.getItem("language") || "ID";
+      const savedLang = sessionStorage.getItem("language") || "ID";
       document.getElementById("lang-badge").textContent = savedLang;
     </script>
     <nav>
