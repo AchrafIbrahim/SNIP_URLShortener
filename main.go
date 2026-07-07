@@ -41,6 +41,15 @@ func initDB() {
 	fmt.Println("Database connected successfully!")
 }
 
+func noCache() gin.HandlerFunc {
+	return func(c *gin.Context){
+		c.Header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        c.Header("Pragma", "no-cache")
+        c.Header("Expires", "0")
+        c.Next()
+	}
+}
+
 func main() {
 	initDB()
 
@@ -101,6 +110,7 @@ func main() {
 		auth.POST("/shorten", handlers.Shorten)
 		auth.GET("/links", handlers.GetLinks)
 	}
+
 
 	//Redirect
 	r.GET("/:slug", handlers.Redirect)
