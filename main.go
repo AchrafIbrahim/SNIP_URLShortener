@@ -68,9 +68,6 @@ func main() {
 	r.GET("/register", func(c *gin.Context){
 		c.HTML(http.StatusOK, "register.html", nil)
 	})
-	r.GET("/main", func(c *gin.Context){
-		c.HTML(http.StatusOK, "main.html", nil)
-	})
 	r.GET("/forgot-password", func(c *gin.Context){
 		c.HTML(http.StatusOK, "forget_password.html", nil)
 	})
@@ -89,9 +86,7 @@ func main() {
 	r.GET("/success-reset-password", func(c *gin.Context){
 		c.HTML(http.StatusOK, "success_reset_password.html", nil)
 	})
-	r.GET("/profile", func(c *gin.Context){
-		c.HTML(http.StatusOK, "profile.html", nil)
-	})
+
 
 	//Public Routes
 	
@@ -109,6 +104,17 @@ func main() {
    		})
 		auth.POST("/shorten", handlers.Shorten)
 		auth.GET("/links", handlers.GetLinks)
+	}
+
+	protected := r.Group("/")
+	protected.Use(noCache())
+	{
+		protected.GET("/main", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "main.html", nil)
+		})
+		protected.GET("/profile", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "profile.html", nil)
+		})
 	}
 
 
