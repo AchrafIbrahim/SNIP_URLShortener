@@ -12,6 +12,7 @@ import (
 
 func Register(c *gin.Context) {
 	var input struct {
+		Name 	 string `json:"name"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
@@ -30,8 +31,8 @@ func Register(c *gin.Context) {
 
 	// Simpan ke database
 	_, err = DB.Exec(
-		"INSERT INTO users (email, password_hash) VALUES ($1, $2)",
-		input.Email, string(hash),
+		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)",
+		input.Name, input.Email, string(hash),
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email sudah terdaftar"})

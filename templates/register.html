@@ -76,7 +76,7 @@
       .form-input-email,
       .form-input-password,
       .form-input-name,
-      .form-input-password-confirm {
+      .form-input-confirm-password {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -305,6 +305,49 @@
           return true;
         }
       }
+
+      async function handleRegisterSubmit(event) {
+        event.preventDefault();
+
+        if (!validateForm()) {
+          return;
+        }
+
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const confirmpassword = document.getElementById("confirm-password").value;
+
+        if (password !== confirmpassword) {
+          document.getElementById("password-confirm-error").textContent = "Password tidak cocok";
+          return;
+        }
+
+        try {
+          const response = await fetch("/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: name,
+              email: email,
+              password: password,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Registrasi berhasil! silahkan login");
+            window.location.href = "/login";
+          } else {
+            alert(data.error);
+          }
+        } catch (error) {
+          alert("Terjadi kesalahan, coba lagi");
+        }
+      }
     </script>
     <div class="register-card">
       <div class="register-icon">
@@ -317,10 +360,10 @@
         <h3>Buat akun Snip</h3>
         <p>Mulai persingkat link dalam hitungan detik</p>
       </div>
-      <form action="" onsubmit="return validateForm();">
+      <form action="" onclick="" onsubmit="handleRegisterSubmit(event)">
         <div class="form-input-name">
           <label for="name">Name</label>
-          <input type="name" id="name" name="name" />
+          <input type="text" id="name" name="name" />
         </div>
         <div class="form-input-email">
           <label for="email">Email</label>
