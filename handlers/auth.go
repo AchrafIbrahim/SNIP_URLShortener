@@ -30,12 +30,32 @@ func Register(c *gin.Context) {
 	}
 
 	// Simpan ke database
-	_, err = DB.Exec(
-		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)",
+	var userID int
+	err = DB.Exec(
+		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
 		input.Name, input.Email, string(hash),
-	)
+	).Scan(&userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email sudah terdaftar"})
+		return
+	}
+
+	//Generate token verifikasi
+	token, err := generateToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate token"})
+		return
+	}
+
+	//Simpan token ke DB
+	if err := saveVerificationToken(userID, token); err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal simpan token"})
+		return
+	}
+
+	//Kirim email verifikasi
+	if err := sendVerificationEmail(input.Email, token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal kirim email verifikasi"})
 		return
 	}
 
@@ -44,6 +64,7 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	var input struct {
+		Name 	 string `json:"name"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
