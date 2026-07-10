@@ -119,6 +119,6 @@ func VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	// Redirect ke halaman sukses
+	// Redirect ke halaman email verified
 	c.Redirect(302, "/email-verified")
 }

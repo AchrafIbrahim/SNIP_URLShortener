@@ -93,6 +93,22 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Cek apakah email sudah terverifikasi
+	var isVerified bool
+	err = DB.QueryRow(
+		"SELECT is_verified FROM users WHERE id = $1", id,
+	).Scan(&isVerified)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Terjadi kesalahan"})
+		return
+	}
+
+	if !isVerified {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email belum diverifikasi. Cek inbox/spam kamu"})
+		return
+	}
+
 	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": id,
