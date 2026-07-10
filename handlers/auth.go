@@ -31,7 +31,7 @@ func Register(c *gin.Context) {
 
 	// Simpan ke database
 	var userID int
-	err = DB.Exec(
+	err = DB.QueryRow(
 		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
 		input.Name, input.Email, string(hash),
 	).Scan(&userID)

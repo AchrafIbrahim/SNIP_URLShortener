@@ -309,9 +309,11 @@
       async function handleRegisterSubmit(event) {
         event.preventDefault();
 
-        if (!validateForm()) {
-          return;
-        }
+        const btn = document.querySelector('button[type="submit"].btn-register-snip');
+
+        // Disable tombol saat proses berlangsung
+        btn.disabled = true;
+        btn.textContent = "Memproses...";
 
         const name = document.getElementById("name").value;
         const email = document.getElementById("email").value;
@@ -320,6 +322,8 @@
 
         if (password !== confirmpassword) {
           document.getElementById("password-confirm-error").textContent = "Password tidak cocok";
+          btn.disabled = false;
+          btn.textContent = "Daftar";
           return;
         }
 
@@ -339,13 +343,19 @@
           const data = await response.json();
 
           if (response.ok) {
-            alert("Registrasi berhasil! silahkan login");
+            // Tampilkan pesan sukses
+            alert("Registrasi berhasil! Cek email kamu untuk verifikasi akun.");
             window.location.href = "/login";
           } else {
             alert(data.error);
+            // Aktifkan kembali tombol kalau gagal
+            btn.disabled = false;
+            btn.textContent = "Daftar";
           }
         } catch (error) {
           alert("Terjadi kesalahan, coba lagi");
+          btn.disabled = false;
+          btn.textContent = "Daftar";
         }
       }
     </script>

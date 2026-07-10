@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"gopkg.in/gomail.v2"
+	"github.com/gin-gonic/gin"
 )
 
 func generateToken() (string, error) {
@@ -40,14 +43,82 @@ func sendVerificationEmail(email, token string) error {
 		os.Getenv("SMTP_PASSWORD"),
 	)
 
-	return d.DialAndSend(m)
+	// Tambahkan ini untuk debug
+    err := d.DialAndSend(m)
+    if err != nil {
+        fmt.Println("Error kirim email:", err)
+    }
+
+	return err
+	//return d.DialAndSend(m)
 }
 
 func saveVerificationToken(userID int, token string) error {
 	expiredAt := time.Now().Add(24 * time.Hour)
-	_, err := DB.exec (
-		"ÏNSERT INTO email_verification (user_id, token, expired_at) VALUE ($1, $2, $3)",
-		userID, token, exiredAt,
+	_, err := DB.Exec (
+		"INSERT INTO email_verifications (user_id, token, expired_at) VALUES ($1, $2, $3)",
+		userID, token, expiredAt,
 	)
+	if err != nil {
+		fmt.Println("Error saving token: ", err)
+	}
 	return err
+}
+
+func VerifyEmail(c *gin.Context) {
+	token := c.Query("token")
+
+	if token == "" {
+		c.HTML(http.StatusBadRequest, "link_reset_expired.html", nil)
+		return
+	}
+
+	// Cari token di database
+	var userID int
+	var expiredAt time.Time
+	var verifiedAt sql.NullTime
+
+	err := DB.QueryRow(
+		"SELECT user_id, expired_at, verified_at FROM email_verifications WHERE token = $1",
+		token,
+	).Scan(&userID, &expiredAt, &verifiedAt)
+
+	if err != nil {
+		c.HTML(http.StatusNotFound, "link_reset_expired.html", nil)
+		return
+	}
+
+	// Cek apakah sudah pernah diverifikasi
+	if verifiedAt.Valid {
+		c.Redirect(302, "/login")
+		return
+	}
+
+	// Cek apakah token sudah expired
+	if time.Now().After(expiredAt) {
+		c.HTML(http.StatusBadRequest, "link_reset_expired.html", nil)
+		return
+	}
+
+	// Update verified_at dan is_verified
+	_, err = DB.Exec(
+		"UPDATE email_verifications SET verified_at = NOW() WHERE token = $1",
+		token,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal verifikasi"})
+		return
+	}
+
+	_, err = DB.Exec(
+		"UPDATE users SET is_verified = TRUE WHERE id = $1",
+		userID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update status verifikasi"})
+		return
+	}
+
+	// Redirect ke halaman sukses
+	c.Redirect(302, "/success-reset-password")
 }
