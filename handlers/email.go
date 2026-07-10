@@ -122,3 +122,146 @@ func VerifyEmail(c *gin.Context) {
 	// Redirect ke halaman email verified
 	c.Redirect(302, "/email-verified")
 }
+
+func ForgotPassword(c *gin.Context){
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	//Cari user berdasarkan email
+	var userID int
+	err := DB.QueryRow(
+		"SELECT id FROM users WHERE email =  $1", input.Email,
+	).Scan(&userID)
+
+	if err != nil{
+		c.JSON(http.StatusOK, gin.H{"message": "Kalau email terdaftar, link reset akan dikirim." })
+		return
+	}
+
+	//Generate token
+	token err := generateToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate token"})
+		return
+	}
+
+	//Save token ke table reset password
+	expiredAt := time.Now().Add(1 * time.Hour)
+	_, err = DB.Exec(
+		"INSERT INTO password_resets (user_id, token, expired_at) VALUES ($1, $2, $3)",
+		userID, token, expiredAt,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal simpan token"})
+		return
+	}
+
+	//Kirim email reset password
+	if err := sendResetPasswordEmail(input.Email, token); err != nil {
+		fmt.Println("Error kirim email:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal kirim email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Link reset password sudah dikirim ke email kamu."})
+}
+
+func sendResetPasswordEmail(email, token string) error {
+	resetURL := fmt.Sprintf("http://localhost:9090/new-password?token=%s", token)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("SMTP_EMAIL"))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Reset Password Snip")
+	m.SetBody("text/html", fmt.Sprintf(`
+		<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+			<h2 style="color: #1a1a1a;">Reset Password</h2>
+			<p style="color: #7a7a7a;">Klik tombol di bawah untuk membuat password baru. Link ini berlaku selama 1 jam.</p>
+			<a href="%s" style="display: inline-block; padding: 12px 24px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
+			<p style="color: #b0b0b0; font-size: 12px;">Kalau kamu tidak meminta reset password, abaikan email ini.</p>
+		</div>
+	`, resetURL))
+
+	d := gomail.NewDialer(
+		"smtp.gmail.com",
+		587,
+		os.Getenv("SMTP_EMAIL"),
+		os.Getenv("SMTP_PASSWORD"),
+	)
+
+	return d.DialAndSend(m)
+}
+
+func ResetPassword(c *gin.Context) {
+	var input struct {
+		Token    string `json:"token"`
+		Password string `json:"password"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	// Cari token di database
+	var userID int
+	var expiredAt time.Time
+	var usedAt sql.NullTime
+
+	err := DB.QueryRow(
+		"SELECT user_id, expired_at, used_at FROM password_resets WHERE token = $1",
+		input.Token,
+	).Scan(&userID, &expiredAt, &usedAt)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token tidak valid"})
+		return
+	}
+
+	// Cek apakah token sudah dipakai
+	if usedAt.Valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token sudah pernah dipakai"})
+		return
+	}
+
+	// Cek apakah token sudah expired
+	if time.Now().After(expiredAt) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token sudah kedaluwarsa"})
+		return
+	}
+
+	// Hash password baru
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hash password"})
+		return
+	}
+
+	// Update password di tabel users
+	_, err = DB.Exec(
+		"UPDATE users SET password_hash = $1 WHERE id = $2",
+		string(hash), userID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update password"})
+		return
+	}
+
+	// Tandai token sudah dipakai
+	_, err = DB.Exec(
+		"UPDATE password_resets SET used_at = NOW() WHERE token = $1",
+		input.Token,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password berhasil direset!"})
+}
