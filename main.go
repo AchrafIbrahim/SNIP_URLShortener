@@ -90,6 +90,7 @@ func main() {
 	r.GET("/email-verified", func(c *gin.Context){
 		c.HTML(http.StatusOK, "email_verified.html", nil)
 	})
+	r.GET("/validate-reset-token", handlers.ValidateResetToken)
 	r.POST("/forgot-password", handlers.ForgotPassword)
 	r.POST("/reset-password", handlers.ResetPassword)
 

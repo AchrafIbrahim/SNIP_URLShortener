@@ -231,6 +231,11 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
+	//DEBUG
+	fmt.Println("Waktu sekarang (server):", time.Now())
+	fmt.Println("Token expired_at:", expiredAt)
+	fmt.Println("Sudah expired?", time.Now().After(expiredAt))
+
 	// Cek apakah token sudah expired
 	if time.Now().After(expiredAt) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token sudah kedaluwarsa"})
@@ -265,4 +270,38 @@ func ResetPassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password berhasil direset!"})
+}
+
+func ValidateResetToken(c *gin.Context) {
+    token := c.Query("token")
+
+    if token == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Token tidak ada"})
+        return
+    }
+
+    var expiredAt time.Time
+    var usedAt sql.NullTime
+
+    err := DB.QueryRow(
+        "SELECT expired_at, used_at FROM password_resets WHERE token = $1",
+        token,
+    ).Scan(&expiredAt, &usedAt)
+
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Token tidak valid"})
+        return
+    }
+
+    if usedAt.Valid {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Token sudah pernah dipakai"})
+        return
+    }
+
+    if time.Now().After(expiredAt) {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Token sudah kedaluwarsa"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Token valid"})
 }
