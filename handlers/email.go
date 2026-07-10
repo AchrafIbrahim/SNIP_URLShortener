@@ -11,6 +11,7 @@ import (
 
 	"gopkg.in/gomail.v2"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func generateToken() (string, error) {
@@ -145,7 +146,7 @@ func ForgotPassword(c *gin.Context){
 	}
 
 	//Generate token
-	token err := generateToken()
+	token, err := generateToken()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate token"})
 		return
