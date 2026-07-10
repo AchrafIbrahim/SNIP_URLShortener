@@ -87,6 +87,9 @@ func main() {
 		c.HTML(http.StatusOK, "success_reset_password.html", nil)
 	})
 	r.GET("/verify-email", handlers.VerifyEmail)
+	r.GET("/email-verified", func(c *gin.Context){
+		c.HTML(http.StatusOK, "email_verified.html", nil)
+	})
 
 
 	//Public Routes

@@ -120,5 +120,5 @@ func VerifyEmail(c *gin.Context) {
 	}
 
 	// Redirect ke halaman sukses
-	c.Redirect(302, "/success-reset-password")
+	c.Redirect(302, "/email-verified")
 }
