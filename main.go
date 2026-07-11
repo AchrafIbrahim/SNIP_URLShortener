@@ -108,7 +108,22 @@ func main() {
 		//Route dashboard here
 		auth.GET("/me", func(c *gin.Context) {
        		userID := c.MustGet("user_id")
-        	c.JSON(200, gin.H{"user_id": userID})
+
+			var name, email string
+			err := db.QueryRow(
+				"SELECT name, email FROM users WHERE id = $1", userID, 
+			).Scan(&name, &email)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal ambil data user"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"user_id": userID,
+				"name": name,
+				"email": email,
+			})
    		})
 		auth.POST("/shorten", handlers.Shorten)
 		auth.GET("/links", handlers.GetLinks)

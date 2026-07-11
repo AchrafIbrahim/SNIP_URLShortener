@@ -787,6 +787,44 @@
 
       const savedLang = sessionStorage.getItem("language") || "ID";
       document.getElementById("lang-badge").textContent = savedLang;
+
+      async function loadUserInfo() {
+        const token = sessionStorage.getItem("token");
+
+        try {
+          const response = await fetch("/api/me", {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Update nama dan email di dropdown
+            document.getElementById("dropdown-name").textContent = data.name;
+            document.getElementById("dropdown-email").textContent = data.email;
+
+            // Update avatar dengan inisial nama
+            const initials = data.name
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2);
+            document.getElementById("avatar").textContent = initials;
+          } else {
+            // Token tidak valid, logout
+            sessionStorage.clear();
+            window.location.href = "/login";
+          }
+        } catch (error) {
+          console.log("Error:", error);
+        }
+      }
+
+      loadUserInfo();
     </script>
     <nav>
       <a class="logo" href="/main"> <span class="logo-dot"></span>snip </a>
@@ -800,8 +838,8 @@
         <div class="avatar" id="avatar" onclick="toggleDropdown()">AB</div>
         <div class="dropdown" id="dropdown">
           <div class="dropdown-user-info">
-            <p class="dropdown-name">Ibrah Maula Setya Aji</p>
-            <p class="dropdown-email">ibrahaji01@gmail.com</p>
+            <p class="dropdown-name" id="dropdown-name">Loading...</p>
+            <p class="dropdown-email" id="dropdown-email">Loading...</p>
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-menu-items">
