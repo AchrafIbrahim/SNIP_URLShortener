@@ -93,6 +93,7 @@ func main() {
 	r.GET("/validate-reset-token", handlers.ValidateResetToken)
 	r.POST("/forgot-password", handlers.ForgotPassword)
 	r.POST("/reset-password", handlers.ResetPassword)
+	r.POST("/resend-verification", handlers.ResendVerificationEmail)
 
 
 

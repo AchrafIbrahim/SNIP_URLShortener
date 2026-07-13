@@ -305,3 +305,57 @@ func ValidateResetToken(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"message": "Token valid"})
 }
+
+func ResendVerificationEmail(c *gin.Context) {
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	// Cari user berdasarkan email
+	var userID int
+	var isVerified bool
+	err := DB.QueryRow(
+		"SELECT id, is_verified FROM users WHERE email = $1", input.Email,
+	).Scan(&userID, &isVerified)
+
+	if err != nil {
+		// Sengaja return OK supaya tidak bocorkan info email terdaftar atau tidak
+		c.JSON(http.StatusOK, gin.H{"message": "Kalau email terdaftar dan belum diverifikasi, email akan dikirim ulang."})
+		return
+	}
+
+	// Kalau sudah terverifikasi
+	if isVerified {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email sudah terverifikasi, silakan login."})
+		return
+	}
+
+	// Hapus token lama
+	DB.Exec("DELETE FROM email_verifications WHERE user_id = $1", userID)
+
+	// Generate token baru
+	token, err := generateToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate token"})
+		return
+	}
+
+	// Simpan token baru
+	if err := saveVerificationToken(userID, token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal simpan token"})
+		return
+	}
+
+	// Kirim ulang email
+	if err := sendVerificationEmail(input.Email, token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal kirim email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Email verifikasi sudah dikirim ulang."})
+}

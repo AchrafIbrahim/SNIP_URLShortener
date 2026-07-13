@@ -207,44 +207,73 @@
         }, 2000);
       }*/
 
+      let currentEmail = "";
+
       async function handleLoginSubmit(event) {
-        event.preventDefault();
-        console.log("function dipanggil");
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+        let currentEmail = "";
 
-        try {
-          const response = await fetch("/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: email,
-              password: password,
-            }),
-          });
+        async function handleLoginSubmit(event) {
+          event.preventDefault();
 
-          const data = await response.json();
+          const btn = document.querySelector('button[type="submit"].btn-login-snip');
+          btn.disabled = true;
+          btn.textContent = "Memproses...";
 
-          if (response.ok) {
-            //login success
-            sessionStorage.setItem("token", data.token);
-            window.location.href = "/main";
-          } else {
-            //login failure
-            alert(data.error);
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          currentEmail = email;
+
+          try {
+            const response = await fetch("/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              sessionStorage.setItem("token", data.token);
+              window.location.href = "/main";
+            } else {
+              // Kalau error karena belum verifikasi
+              if (data.error.includes("belum diverifikasi")) {
+                document.getElementById("verify-error").style.display = "block";
+                document.getElementById("verify-message").textContent = data.error;
+              } else {
+                alert(data.error);
+              }
+              btn.disabled = false;
+              btn.textContent = "Masuk";
+            }
+          } catch (error) {
+            alert("Terjadi kesalahan, coba lagi");
+            btn.disabled = false;
+            btn.textContent = "Masuk";
           }
-        } catch (error) {
-          alert("Terjadi kesalahan, coba lagi");
         }
 
-        return false;
+        async function resendVerification() {
+          const btn = document.getElementById("resend-btn");
+          btn.disabled = true;
+          btn.textContent = "Mengirim...";
 
-        //Login with fake token (Simulation)
-        /*sessionStorage.setItem("token", "fake-token-123");
-        window.location.href = "/main";
-        return false;*/
+          try {
+            const response = await fetch("/resend-verification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: currentEmail }),
+            });
+
+            const data = await response.json();
+            alert(data.message || data.error);
+          } catch (error) {
+            alert("Terjadi kesalahan, coba lagi");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Kirim ulang email verifikasi";
+          }
+        }
       }
     </script>
     <div class="login-card">
@@ -297,6 +326,12 @@
               <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
             </svg>
             Masuk dengan google
+          </button>
+        </div>
+        <div id="verify-error" style="display: none; text-align: center; margin-top: 12px">
+          <p style="font-size: 13px; color: #c0392b" id="verify-message"></p>
+          <button type="button" id="resend-btn" onclick="resendVerification()" style="font-size: 13px; color: #1a1a1a; background: none; border: none; text-decoration: underline; cursor: pointer; margin-top: 4px">
+            Kirim ulang email verifikasi
           </button>
         </div>
         <div class="btn-to-register">

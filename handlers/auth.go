@@ -55,6 +55,8 @@ func Register(c *gin.Context) {
 
 	//Kirim email verifikasi
 	if err := sendVerificationEmail(input.Email, token); err != nil {
+		DB.Exec("DELETE FROM email_verifications WHERE user_id = $1", userID)
+    	DB.Exec("DELETE FROM users WHERE id = $1", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal kirim email verifikasi"})
 		return
 	}
