@@ -347,13 +347,17 @@
             alert("Registrasi berhasil! Cek email kamu untuk verifikasi akun.");
             window.location.href = "/login";
           } else {
-            alert(data.error);
-            // Aktifkan kembali tombol kalau gagal
+            //alert(data.error);
+            if (data.error.includes("Gagal kirim email")) {
+              alert("Gagal mengirim email verifikasi. Silakan coba daftar ulang.");
+            } else {
+              alert(data.error);
+            }
             btn.disabled = false;
             btn.textContent = "Daftar";
           }
         } catch (error) {
-          alert("Terjadi kesalahan, coba lagi");
+          console.log("Error:", error);
           btn.disabled = false;
           btn.textContent = "Daftar";
         }
