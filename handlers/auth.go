@@ -125,3 +125,33 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
+
+func UpdateProfile(c *gin.Context) {
+	userID := c.MustGet("user_id")
+
+	var input struct {
+		Name string `json: "name"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	if input.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama tidak boleh kosong"})
+		return
+	}
+
+	_, err := DB.Exec(
+		"UPDATE users SET name = $1 WHERE id = $2",
+		input.Name, userID,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update profil"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Profil berhasil diperbarui"})
+}

@@ -128,6 +128,7 @@ func main() {
    		})
 		auth.POST("/shorten", handlers.Shorten)
 		auth.GET("/links", handlers.GetLinks)
+		auth.PUT("/profile", handlers.UpdateProfile)
 	}
 
 	protected := r.Group("/")

@@ -317,8 +317,9 @@
           });
 
           const data = await response.json();
-
+          console.log("Data dari /api/me:", data);
           if (response.ok) {
+            console.log("Nama:", data.name);
             // Update nama dan email di dropdown
             document.getElementById("profile-name").textContent = data.name;
             document.getElementById("profile-email").textContent = data.email;
@@ -330,7 +331,8 @@
               .join("")
               .toUpperCase()
               .slice(0, 2);
-            document.getElementById("avatar").textContent = initials;
+            console.log("Initials:", initials);
+            document.getElementById("profile-avatar").textContent = initials;
           } else {
             // Token tidak valid, logout
             sessionStorage.clear();
@@ -338,6 +340,59 @@
           }
         } catch (error) {
           console.log("Error:", error);
+        }
+      }
+
+      async function handleUpdateProfile(event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btn-change-profile");
+        btn.disabled = true;
+        btn.textContent = "Menyimpan...";
+
+        const name = document.getElementById("nama").value;
+
+        if (!name) {
+          alert("Nama tidak boleh kosong");
+          btn.disabled = false;
+          btn.textContent = "Simpan perubahan";
+          return;
+        }
+
+        const token = sessionStorage.getItem("token");
+
+        try {
+          const response = await fetch("/api/profile", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({ name: name }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            //update tampilan profil
+            document.getElementById("profile-name").textContent = name;
+            document.getElementById("profile-avatar").textContent = name
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2);
+
+            alert("Profil berhasil diperbarui!");
+          } else {
+            alert(data.error);
+          }
+        } catch (error) {
+          console.log("error detail: ", error);
+          alert("Terjadi kesalahan, coba lagi");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Simpan perubahan";
         }
       }
 
@@ -359,23 +414,23 @@
         <h5>Informasi dasar</h5>
         <div class="divider"></div>
         <div class="basic-info-avatar-wrapper">
-          <div class="basic-info-avatar" id="avatar"></div>
+          <div class="basic-info-avatar" id="profile-avatar"></div>
           <div>
             <p class="basic-info-name" id="profile-name"></p>
             <p class="basic-info-email" id="profile-email"></p>
           </div>
         </div>
-        <form action="">
+        <form action="" onsubmit="handleUpdateProfile(event)">
           <div class="field-name">
             <label for="name">Nama</label>
-            <input type="text" id="nama" name="nama" value="Ibrah" />
+            <input type="text" id="nama" name="nama" />
           </div>
           <div class="field-email">
             <label for="email">Email</label>
             <input type="email" name="email" id="email" disabled />
             <p>Email tidak dapat diubah</p>
           </div>
-          <button type="submit" class="btn-change-profile">Simpan Perubahan</button>
+          <button type="submit" class="btn-change-profile" id="btn-change-profile">Simpan Perubahan</button>
         </form>
       </div>
       <div class="profile-card-change-password">
