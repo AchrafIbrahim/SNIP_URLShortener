@@ -100,7 +100,10 @@ func main() {
 	//Public Routes
 	
 	r.POST("/register", handlers.Register)
-	r.POST("/login", handlers.Login)
+	r.POST(
+		"/login", middleware.RateLimitMiddleware(), 
+		handlers.Login,
+	)
 
 	//Protected Routes
 	auth := r.Group("/api")
