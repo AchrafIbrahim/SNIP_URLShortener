@@ -304,6 +304,44 @@
       if (!token) {
         window.location.href = "/login";
       }
+
+      async function loadUserInfo() {
+        const token = sessionStorage.getItem("token");
+
+        try {
+          const response = await fetch("/api/me", {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer " + sessionStorage.getItem("token"),
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Update nama dan email di dropdown
+            document.getElementById("profile-name").textContent = data.name;
+            document.getElementById("profile-email").textContent = data.email;
+
+            // Update avatar dengan inisial nama
+            const initials = data.name
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2);
+            document.getElementById("avatar").textContent = initials;
+          } else {
+            // Token tidak valid, logout
+            sessionStorage.clear();
+            window.location.href = "/login";
+          }
+        } catch (error) {
+          console.log("Error:", error);
+        }
+      }
+
+      loadUserInfo();
     </script>
     <div class="profile-page">
       <a href="/main" class="profile-btn-to-home">
@@ -321,10 +359,10 @@
         <h5>Informasi dasar</h5>
         <div class="divider"></div>
         <div class="basic-info-avatar-wrapper">
-          <div class="basic-info-avatar" id="avatar">AB</div>
+          <div class="basic-info-avatar" id="avatar"></div>
           <div>
-            <p class="basic-info-name">Ibrah Maula Setya Aji</p>
-            <p class="basic-info-email">ibrahaji01@gmail.com</p>
+            <p class="basic-info-name" id="profile-name"></p>
+            <p class="basic-info-email" id="profile-email"></p>
           </div>
         </div>
         <form action="">
