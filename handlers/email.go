@@ -268,7 +268,8 @@ func ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update token"})
 		return
 	}
-
+	
+	LogAudit(userID, "RESET_PASSWORD", "User mereset password", c)
 	c.JSON(http.StatusOK, gin.H{"message": "Password berhasil direset!"})
 }
 

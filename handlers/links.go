@@ -56,6 +56,8 @@ func Shorten(c *gin.Context) {
 		"short_url":  	"http://localhost:9090/" + slug,
 		"original_url": input.URL,
 	})
+
+	LogAudit(userID, "SHORTEN_URL", "User mempersingkat URL" +input.URL, c)
 }
 
 func GetLinks(c *gin.Context){

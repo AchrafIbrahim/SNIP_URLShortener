@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -60,7 +61,7 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal kirim email verifikasi"})
 		return
 	}
-
+	LogAudit(userID, "REGISTER", "User baru mendaftar: " +input.Email, c)	
 	c.JSON(http.StatusOK, gin.H{"message": "Registrasi berhasil"})
 }
 
@@ -123,18 +124,30 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	LogAudit(id, "LOGIN", "User berhasil login", c)
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+
+	
 }
 
 func UpdateProfile(c *gin.Context) {
-	userID := c.MustGet("user_id")
+	userID := c.MustGet("user_id").(int)
 
 	var input struct {
-		Name string `json: "name"`
+		Name 	 string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	var userEmail string
+	err := DB.QueryRow("SELECT email FROM users WHERE id = $1", userID).Scan(&userEmail)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data user"})
 		return
 	}
 
@@ -143,7 +156,7 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	_, err := DB.Exec(
+	_, err = DB.Exec(
 		"UPDATE users SET name = $1 WHERE id = $2",
 		input.Name, userID,
 	)
@@ -152,6 +165,6 @@ func UpdateProfile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update profil"})
 		return
 	}
-
+	LogAudit(userID, "UPDATE_PROFILE", fmt.Sprintf("User %s mengubah nama profil", userEmail), c)
 	c.JSON(http.StatusOK, gin.H{"message": "Profil berhasil diperbarui"})
 }
