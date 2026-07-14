@@ -25,6 +25,20 @@ func Shorten(c *gin.Context) {
 		URL string `json:"url"`
 	}
 
+	input.URL = strings.TrimSpace(input.URL)
+
+	// Validasi URL
+	if !IsValidURL(input.URL) {
+    	c.JSON(http.StatusBadRequest, gin.H{"error": "URL tidak valid"})
+    	return
+	}
+
+	// Kalau ada slug kustom
+	if input.Slug != "" && !IsValidSlug(input.Slug) {
+   		c.JSON(http.StatusBadRequest, gin.H{"error": "Slug hanya boleh huruf, angka, dan tanda hubung"})
+    	return
+	}
+	
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
 		return

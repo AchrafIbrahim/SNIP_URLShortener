@@ -32,6 +32,8 @@ func Register(c *gin.Context) {
 
 	// Simpan ke database
 	var userID int
+	input.Name = SanitizeText(input.Name)
+	input.Email = strings.TrimSpace(input.Email)
 	err = DB.QueryRow(
 		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
 		input.Name, input.Email, string(hash),
