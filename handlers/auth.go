@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -145,6 +146,9 @@ func UpdateProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
 		return
 	}
+
+	//Sanitize name
+	input.Name = SanitizeText(input.Name)
 
 	var userEmail string
 	err := DB.QueryRow("SELECT email FROM users WHERE id = $1", userID).Scan(&userEmail)

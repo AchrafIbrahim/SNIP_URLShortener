@@ -23,8 +23,15 @@ func generateSlug(length int) string {
 func Shorten(c *gin.Context) {
 	var input struct {
 		URL string `json:"url"`
+		Slug string `json:"slug"`
 	}
 
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	input.Slug = strings.TrimSpace(input.Slug)
 	input.URL = strings.TrimSpace(input.URL)
 
 	// Validasi URL
@@ -38,22 +45,15 @@ func Shorten(c *gin.Context) {
    		c.JSON(http.StatusBadRequest, gin.H{"error": "Slug hanya boleh huruf, angka, dan tanda hubung"})
     	return
 	}
-	
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
-		return
-	}
-
-	if !strings.HasPrefix(input.URL, "http://") && !strings.HasPrefix(input.URL, "https://"){
-		c.JSON(http.StatusBadRequest, gin.H{"error":"URL harus diawali http:// atau https://"})
-		return
-	}
 
 	// Ambil user_id dari token
 	userID := c.MustGet("user_id")
 
 	// Generate slug random character
-	slug := generateSlug(6)
+	slug := input.Slug
+	if slug == "" {
+		slug = generateSlug(6)
+	}
 
 	// Save to DB
 	_, err := DB.Exec(
@@ -65,13 +65,12 @@ func Shorten(c *gin.Context) {
 		return
 	}
 
+	LogAudit(userID, "SHORTEN_URL", "User mempersingkat URL" +input.URL, c)
 	c.JSON(http.StatusOK, gin.H{
 		"slug":       	slug,
 		"short_url":  	"http://localhost:9090/" + slug,
 		"original_url": input.URL,
 	})
-
-	LogAudit(userID, "SHORTEN_URL", "User mempersingkat URL" +input.URL, c)
 }
 
 func GetLinks(c *gin.Context){
