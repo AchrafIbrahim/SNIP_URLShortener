@@ -121,22 +121,43 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate JWT token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": id,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+	// Generate JWT token (Update only to 15 minutes)
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": 	id,
+		"type": 	"access",
+		"exp":     	time.Now().Add(15 * time.Minute).Unix(), //token duration
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	accessTokenString, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate access token"})
+		return
+	}
+
+	// Generate Refresh Token (Up to 7 days)
+	refreshTokenValue, err := generateToken() // function on email.go
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate refresh token"})
+		return
+	}
+
+	// Save Refresh token to DB 
+	expiredAt := time.Now().Add(7 * 24 * time.Hour)
+	_, err = DB.Exec (
+		"INSERT INTO refresh_tokens (user_id, token, expired_at) VALUES ($1, $2, $3)",
+		id, refreshTokenValue, expiredAt,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal simpan refresh token"})
 		return
 	}
 
 	LogAudit(id, "LOGIN", "User berhasil login", c)
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
-
-	
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": accessTokenString,
+		"refresh_token": refreshTokenValue,
+		"expires_in": 900, // 15 minutes in seconds
+	})
 }
 
 func UpdateProfile(c *gin.Context) {
