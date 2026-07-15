@@ -201,3 +201,71 @@ func UpdateProfile(c *gin.Context) {
 	LogAudit(userID, "UPDATE_PROFILE", fmt.Sprintf("User %s mengubah nama profil", userEmail), c)
 	c.JSON(http.StatusOK, gin.H{"message": "Profil berhasil diperbarui"})
 }
+
+func RefreshToken(c *gin.Context) {
+	var input struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return 
+	}
+
+	// find refresh token
+	var userID int
+	var expiredAt time.Time
+
+	err := DB.QueryRow(
+		"SELECT user_id, expired_at FROM refresh_tokens WHERE token = $1",
+		input.RefreshToken,
+	).Scan(&userID, &expiredAt)
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token tidak valid"})
+		return
+	}
+
+	// expired check
+	if time.Now().After(expiredAt) {
+		DB.Exec("DELETE FROM refresh_tokens WHERE token = $1", input.RefreshToken)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token sudah kedaluwarsa, silakan login ulang"})
+		return 
+	}
+
+	// delete old refresh token (rotation here)
+	DB.Exec("DELETE FROM refresh_tokens WHERE token = $1", input.RefreshToken)
+
+	//Generate new access token
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": 	userID,
+		"type":		"access",
+		"exp":		time.Now().Add(15 * time.Minute).Unix(),
+	})
+
+	accessTokenString, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate access token baru"})
+		return 
+	}
+
+	// Generate new refresh token
+	newRefreshToken, err := generateToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal generate refresh token"})
+		return
+	}
+
+	// Save new refresh token to DB
+	newExpiredAt := time.Now().Add(7 * 24 * time.Hour)
+	DB.Exec(
+		"INSERT INTO refresh_tokens (user_id, token, expired_at) VALUES ($1, $2, $3)",
+		userID, newRefreshToken, newExpiredAt,
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": accessTokenString,
+		"refresh_token": newRefreshToken,
+		"expires_in": 900,
+	})
+}
