@@ -24,6 +24,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	//Validate password
+	if valid, msg := IsValidPassword(input.Password); !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": msg})
+		return
+	}
+
 	// Hash password
 	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {

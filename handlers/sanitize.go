@@ -27,3 +27,26 @@ func IsValidSlug(slug string) bool {
 func IsValidURL(url string) bool {
 	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
 }
+
+func IsValidPassword(password string) (bool, string) {
+	if len(password) < 8 {
+		return false, "Password minimal 8 karakter"
+	}
+
+	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
+	if !hasUpper {
+		return false, "Password harus mengandung huruf besar"
+	}
+
+	hasNumber := regexp.MustCompile(`[0-9]`).MatchString(password)
+	if !hasNumber {
+		return false, "Password harus mengandung angka"
+	}
+
+	hasSpecial := regexp.MustCompile (`[!@#$%^&*(),.?":{}|<>]`).MatchString(password)
+	if !hasSpecial {
+		return false, "Password harus mengandung spesial karakter"
+	}
+
+	return true, ""
+}

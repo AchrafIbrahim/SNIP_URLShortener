@@ -210,6 +210,11 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
+	if valid, msg := IsValidPassword(input.Password); !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": msg})
+		return
+	}
+
 	// Cari token di database
 	var userID int
 	var expiredAt time.Time
