@@ -269,3 +269,22 @@ func RefreshToken(c *gin.Context) {
 		"expires_in": 900,
 	})
 }
+
+func Logout(c *gin.Context) {
+	var input struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	// Hapus refresh token dari DB
+	DB.Exec("DELETE FROM refresh_tokens WHERE token = $1", input.RefreshToken)
+
+	userID := c.MustGet("user_id")
+	LogAudit(userID, "LOGOUT", "User logout", c)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Berhasil logout"})
+}

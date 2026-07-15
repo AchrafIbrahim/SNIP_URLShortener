@@ -94,6 +94,7 @@ func main() {
 	r.POST("/forgot-password", handlers.ForgotPassword)
 	r.POST("/reset-password", handlers.ResetPassword)
 	r.POST("/resend-verification", handlers.ResendVerificationEmail)
+	r.POST("/refresh-token", handlers.RefreshToken)
 
 
 
@@ -133,6 +134,7 @@ func main() {
 		auth.GET("/links", handlers.GetLinks)
 		auth.PUT("/profile", handlers.UpdateProfile)
 		auth.GET("/audit-logs", handlers.GetAuditLogs)
+		auth.POST("/logout", handlers.Logout)
 	}
 
 	protected := r.Group("/")

@@ -1033,7 +1033,7 @@
     </div>
 
     <script>
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("access_token");
       if (!token) {
         window.location.href = "/login";
       }
@@ -1048,6 +1048,52 @@
         }
       }
 
+      async function fetchWithAuth(url, options = {}) {
+        const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
+
+        if (Date.now() > expiresAt - 60000) {
+          const refreshed = await refreshAccessToken();
+          if (!refreshed) {
+            window.location.href = "/login";
+            return;
+          }
+        }
+
+        const token = sessionStorage.getItem("access_token");
+        options.headers = {
+          ...options.headers,
+          Authorization: "Bearer " + token,
+        };
+
+        return fetch(url, options);
+      }
+
+      async function refreshAccessToken() {
+        const refreshToken = sessionStorage.getItem("refresh_token");
+        if (!refreshToken) return false;
+
+        try {
+          const response = await fetch("/refresh-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem("access_token", data.access_token);
+            sessionStorage.setItem("refresh_token", data.refresh_token);
+            sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
+            return true;
+          } else {
+            sessionStorage.clear();
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      }
+
       document.addEventListener("click", function (e) {
         const wrapper = document.querySelector(".avatar-wrapper");
 
@@ -1056,7 +1102,19 @@
         }
       });
 
-      function handleLogout() {
+      // Updated with access token and refresh token
+      async function handleLogout() {
+        const refreshToken = sessionStorage.getItem("refresh_token");
+
+        await fetch("/api/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + sessionStorage.getItem("access_token"),
+          },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+
         sessionStorage.clear();
         window.location.href = "/login";
       }
@@ -1071,24 +1129,13 @@
       document.getElementById("lang-badge").textContent = savedLang;
 
       async function loadUserInfo() {
-        const token = sessionStorage.getItem("token");
-
         try {
-          const response = await fetch("/api/me", {
-            method: "GET",
-            headers: {
-              Authorization: "Bearer " + sessionStorage.getItem("token"),
-            },
-          });
-
+          const response = await fetchWithAuth("/api/me");
           const data = await response.json();
 
           if (response.ok) {
-            // Update nama dan email di dropdown
             document.getElementById("dropdown-name").textContent = data.name;
             document.getElementById("dropdown-email").textContent = data.email;
-
-            // Update avatar dengan inisial nama
             const initials = data.name
               .split(" ")
               .map((word) => word[0])
@@ -1097,7 +1144,6 @@
               .slice(0, 2);
             document.getElementById("avatar").textContent = initials;
           } else {
-            // Token tidak valid, logout
             sessionStorage.clear();
             window.location.href = "/login";
           }
