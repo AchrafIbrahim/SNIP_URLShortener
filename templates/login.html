@@ -294,6 +294,10 @@
           const data = await response.json();
 
           if (response.ok) {
+            console.log("Response data:", data);
+            console.log("access_token:", data.access_token);
+            console.log("refresh_token:", data.refresh_token);
+
             sessionStorage.setItem("access_token", data.access_token);
             sessionStorage.setItem("refresh_token", data.refresh_token);
             sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
