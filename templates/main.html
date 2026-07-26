@@ -1033,6 +1033,18 @@
     </div>
 
     <script>
+      const accessTokenFromStorage = localStorage.getItem("access_token");
+      if (accessTokenFromStorage) {
+        sessionStorage.setItem("access_token", accessTokenFromStorage);
+        sessionStorage.setItem("refresh_token", localStorage.getItem("refresh_token"));
+        sessionStorage.setItem("token_expires", localStorage.getItem("token_expires"));
+
+        // Hapus dari localStorage
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("token_expires");
+      }
+
       const token = sessionStorage.getItem("access_token");
       if (!token) {
         window.location.href = "/login";

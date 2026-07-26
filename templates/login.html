@@ -248,6 +248,11 @@
       </form>
     </div>
     <script>
+      window.onerror = function (msg, src, line, col, error) {
+        console.log("Global error:", msg, "line:", line, error);
+        return false;
+      };
+
       function togglepassword() {
         const input = document.getElementById("password");
         const eyeOpen = document.getElementById("eye-open");
@@ -295,13 +300,26 @@
 
           if (response.ok) {
             console.log("Response data:", data);
-            console.log("access_token:", data.access_token);
-            console.log("refresh_token:", data.refresh_token);
 
-            sessionStorage.setItem("access_token", data.access_token);
-            sessionStorage.setItem("refresh_token", data.refresh_token);
-            sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
-            window.location.href = "/main";
+            try {
+              sessionStorage.setItem("access_token", data.access_token);
+              console.log("1. access_token tersimpan:", sessionStorage.getItem("access_token"));
+
+              sessionStorage.setItem("refresh_token", data.refresh_token);
+              console.log("2. refresh_token tersimpan:", sessionStorage.getItem("refresh_token"));
+
+              sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
+              console.log("3. token_expires tersimpan:", sessionStorage.getItem("token_expires"));
+              console.log("access_token:", data.access_token);
+            } catch (storageError) {
+              console.log("Error simpan sessionStorage:", storageError);
+            }
+
+            setTimeout(() => {
+              alert("Login berhasil! Klik OK lalu cek Console sebelum redirect");
+              window.location.href = "/main";
+            }, 100);
+            //window.location.href = "/main";
           } else {
             // Kalau error karena belum verifikasi
             if (data.error.includes("belum diverifikasi")) {
@@ -314,6 +332,8 @@
             btn.textContent = "Masuk";
           }
         } catch (error) {
+          console.log("Error detail:", error);
+          console.log("Error message:", error.message);
           alert("Terjadi kesalahan, coba lagi");
           btn.disabled = false;
           btn.textContent = "Masuk";
