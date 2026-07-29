@@ -278,7 +278,6 @@
       let currentEmail = "";
 
       async function handleLoginSubmit(event) {
-        console.log("handle login submit dipanggil");
         event.preventDefault();
 
         const btn = document.querySelector('button[type="submit"].btn-login-snip');
@@ -299,27 +298,17 @@
           const data = await response.json();
 
           if (response.ok) {
-            console.log("Response data:", data);
-
             try {
               sessionStorage.setItem("access_token", data.access_token);
-              console.log("1. access_token tersimpan:", sessionStorage.getItem("access_token"));
 
               sessionStorage.setItem("refresh_token", data.refresh_token);
-              console.log("2. refresh_token tersimpan:", sessionStorage.getItem("refresh_token"));
 
               sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
-              console.log("3. token_expires tersimpan:", sessionStorage.getItem("token_expires"));
-              console.log("access_token:", data.access_token);
             } catch (storageError) {
               console.log("Error simpan sessionStorage:", storageError);
             }
 
-            setTimeout(() => {
-              alert("Login berhasil! Klik OK lalu cek Console sebelum redirect");
-              window.location.href = "/main";
-            }, 100);
-            //window.location.href = "/main";
+            window.location.href = "/main";
           } else {
             // Kalau error karena belum verifikasi
             if (data.error.includes("belum diverifikasi")) {

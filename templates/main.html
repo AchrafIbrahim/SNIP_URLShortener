@@ -1063,7 +1063,7 @@
       async function fetchWithAuth(url, options = {}) {
         const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
 
-        if (Date.now() > expiresAt - 60000) {
+        if (!isNaN(expiresAt) && Date.now() > expiresAt - 60000) {
           const refreshed = await refreshAccessToken();
           if (!refreshed) {
             window.location.href = "/login";
