@@ -182,6 +182,14 @@
         align-items: center;
       }
 
+      #new-password-error,
+      #confirm-new-password-error {
+        font-size: 12px;
+        color: #c0392b;
+        margin-top: 4px;
+        display: block;
+      }
+
       label {
         font-size: 12px;
         color: #7a7a7a;
@@ -338,6 +346,42 @@
         eyeClosed.style.display = isPassword ? "block" : "none";
       }
 
+      function validatePassword() {
+        const password = document.getElementById("new-password").value;
+        const errorMsg = document.getElementById("new-password-error");
+
+        if (password.length < 8) {
+          errorMsg.textContent = "Password length minimum 8 characters";
+          return false;
+        }
+        if (!/[A-Z]/.test(password)) {
+          errorMsg.textContent = "Password must contain Uppercase letter";
+          return false;
+        }
+        if (!/[0-9]/.test(password)) {
+          errorMsg.textContent = "Password must contain number";
+          return false;
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+          errorMsg.textContent = "Password must contain special character";
+          return false;
+        }
+        errorMsg.textContent = "";
+        return true;
+      }
+
+      function checkPasswordMatch() {
+        const password = document.getElementById("new-password").value;
+        const confirmPassword = document.getElementById("confirm-new-password").value;
+        const errorMsg = document.getElementById("confirm-new-password-error");
+
+        if (password !== confirmPassword) {
+          errorMsg.textContent = "Password tidak cocok";
+        } else {
+          errorMsg.textContent = "";
+        }
+      }
+
       async function loadUserInfo() {
         const token = sessionStorage.getItem("access_token");
 
@@ -491,7 +535,7 @@
           <div class="field-new-password">
             <label for="new-password">Password baru</label>
             <div class="password-wrapper">
-              <input type="password" name="new-password" id="new-password" />
+              <input type="password" name="new-password" id="new-password" onkeyup="validatePassword()" />
               <span class="toggle-password" onclick="togglepassword('new-password', 'eye-open-new', 'eye-closed-new')">
                 <svg id="eye-open-new" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -505,11 +549,12 @@
                 </svg>
               </span>
             </div>
+            <span id="new-password-error"></span>
           </div>
           <div class="field-confirm-new-password">
             <label for="confirm-new-password">Konfirmasi password baru</label>
             <div class="password-wrapper">
-              <input type="password" name="confirm-new-password" id="confirm-new-password" />
+              <input type="password" name="confirm-new-password" id="confirm-new-password" onkeyup="checkPasswordMatch()" />
               <span class="toggle-password" onclick="togglepassword('confirm-new-password', 'eye-open-confirm', 'eye-closed-confirm')">
                 <svg id="eye-open-confirm" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -523,6 +568,7 @@
                 </svg>
               </span>
             </div>
+            <span id="confirm-new-password-error"></span>
           </div>
           <button type="submit" class="btn-change-password">Ganti password</button>
         </form>
