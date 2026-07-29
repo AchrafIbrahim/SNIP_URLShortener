@@ -300,19 +300,19 @@
   </head>
   <body>
     <script>
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("access_token");
       if (!token) {
         window.location.href = "/login";
       }
 
       async function loadUserInfo() {
-        const token = sessionStorage.getItem("token");
+        const token = sessionStorage.getItem("access_token");
 
         try {
           const response = await fetch("/api/me", {
             method: "GET",
             headers: {
-              Authorization: "Bearer " + sessionStorage.getItem("token"),
+              Authorization: "Bearer " + sessionStorage.getItem("access_token"),
             },
           });
 
@@ -359,7 +359,7 @@
           return;
         }
 
-        const token = sessionStorage.getItem("token");
+        const token = sessionStorage.getItem("access_token");
 
         try {
           const response = await fetch("/api/profile", {
