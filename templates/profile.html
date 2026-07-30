@@ -473,6 +473,70 @@
         }
       }
 
+      async function handleChangePassword(event) {
+        event.preventDefault();
+
+        const btn = document.querySelector(".btn-change-password");
+        btn.disabled = true;
+        btn.textContent = "Memproses...";
+
+        const currentPassword = document.getElementById("current-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmNewPassword = document.getElementById("confirm-new-password").value;
+
+        console.log("current_password:", currentPassword);
+        console.log("new_password:", newPassword);
+        //validasi password baru apakah cocok atau tidak
+        if (newPassword !== confirmNewPassword) {
+          alert("Password baru tidak cocok");
+          btn.disabled = false;
+          btn.textContent = "Ganti password";
+          return;
+        }
+
+        if (newPassword.length < 8) {
+          alert("Password baru minimal 8 karakter");
+          btn.disabled = false;
+          btn.textContent = "Ganti password";
+          return;
+        }
+
+        const token = sessionStorage.getItem("access_token");
+
+        try {
+          const response = await fetch("/api/change-password", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({
+              current_password: currentPassword,
+              new_password: newPassword,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(data.message);
+            //logout semua session
+            sessionStorage.clear();
+            window.location.href = "/login";
+          } else {
+            alert(data.error);
+            btn.disabled = false;
+            btn.textContent = "Ganti password";
+          }
+        } catch (error) {
+          alert("Terjadi kesalahan, coba lagi");
+          console.log("Error detail:", error);
+          console.log("Error message:", error.message);
+          btn.disabled = false;
+          btn.textContent = "Ganti password";
+        }
+      }
+
       loadUserInfo();
     </script>
     <div class="profile-page">
@@ -513,7 +577,7 @@
       <div class="profile-card-change-password">
         <h5>Ganti Password</h5>
         <div class="divider"></div>
-        <form action="">
+        <form onsubmit="handleChangePassword(event)">
           <div class="field-password">
             <label for="current-password">Password saat ini</label>
             <div class="password-wrapper">

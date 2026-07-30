@@ -135,6 +135,7 @@ func main() {
 		auth.PUT("/profile", handlers.UpdateProfile)
 		auth.GET("/audit-logs", handlers.GetAuditLogs)
 		auth.POST("/logout", handlers.Logout)
+		auth.PUT("/change-password", handlers.ChangePassword)
 	}
 
 	protected := r.Group("/")

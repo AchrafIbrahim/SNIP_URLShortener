@@ -288,3 +288,69 @@ func Logout(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Berhasil logout"})
 }
+
+func ChangePassword(c *gin.Context) {
+	userID := c.MustGet("user_id")
+
+	var input struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword 	string `json:"new_password"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	//Ambil current password dari DB
+	var PasswordHash string
+	err := DB.QueryRow(
+		"SELECT password_hash FROM users WHERE id = $1", userID,
+	).Scan(&PasswordHash)
+
+	fmt.Println("userID:", userID)
+	fmt.Println("currentPassword:", input.CurrentPassword)
+	fmt.Println("passwordHash dari DB:", PasswordHash)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Terjadi kesalahan"})
+		return
+	}
+
+	//Cek Password Lama
+	err = bcrypt.CompareHashAndPassword([]byte(PasswordHash), []byte(input.CurrentPassword))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Password saat ini salah"})
+		return
+	}
+
+	//Validasi password baru
+	if valid, msg := IsValidPassword(input.NewPassword); !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": msg})
+		return
+	}
+
+	//Hash password baru
+	newHash, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hash password"})
+		return
+	}
+
+	//Updae password di DB
+	_, err = DB.Exec(
+		"UPDATE users SET password_hash = $1 WHERE id = $2",
+		string(newHash), userID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update password"})
+		return
+	}
+
+	//Hapus semua refresh token (paksa logout)
+	DB.Exec("DELETE FROM refresh_tokens WHERE user_id = $1", userID)
+
+	LogAudit(userID, "CHANGE_PASSWORD", "User mengganti password", c)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password berhasil diubah. Silahkan login ulang"})
+}
