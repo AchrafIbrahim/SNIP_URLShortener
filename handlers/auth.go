@@ -354,3 +354,92 @@ func ChangePassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password berhasil diubah. Silahkan login ulang"})
 }
+
+func DeleteAccount(c *gin.Context) {
+	userID := c.MustGet("user_id")
+
+	var input struct {
+		Password string `json:"password"`
+	}
+
+	if err:= c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	//verifikasi password sebelum hapus akun
+	var passwordHash string
+	err := DB.QueryRow(
+		"SELECT password_hash FROM users WHERE id = $1", userID,
+	).Scan(&passwordHash)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Terjadi kesalahan"})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(input.Password))
+	if err != nil  {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Password salah"})
+		return
+	}
+
+	//Hapus semua data dari DB berurutan
+	tx, err := DB.Begin()
+	if err != nil {
+		c.JSON(http. StatusInternalServerError, gin.H{"error": "Gagal memulai transaksi",})
+		return
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("DELETE FROM click_logs WHERE link_id IN (SELECT id FROM links WHERE user_id = $1)", userID)
+	if err != nil {
+		fmt.Println("Delete Click logs:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM links WHERE user_id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete links:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM refresh_tokens WHERE user_id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete refresh token:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM email_verifications WHERE user_id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete email verified:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM password_resets WHERE user_id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete password:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM audit_logs WHERE user_id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete audit log:", err)
+		return
+	}
+
+	_, err = tx.Exec("DELETE FROM users WHERE id = $1", userID)
+	if err != nil {
+		fmt.Println("Delete user:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus akun"})
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal commit transaksi"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Akun berhasil dihapus"})
+}
