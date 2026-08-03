@@ -24,6 +24,8 @@ func Shorten(c *gin.Context) {
 	var input struct {
 		URL string `json:"url"`
 		Slug string `json:"slug"`
+		ExpiredAt string `json:"expired_at"`
+		MaxClicks int `json:"max_clicks"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -56,9 +58,22 @@ func Shorten(c *gin.Context) {
 	}
 
 	// Save to DB
+	var expiredAt *time.Time
+	if input.ExpiredAt != "" {
+		t, err := time.Parse("2006-01-02", input.ExpiredAt)
+    	if err == nil {
+        	expiredAt = &t
+    	}
+	}
+
+	var maxClicks *int
+	if input.MaxClicks > 0 {
+    	maxClicks = &input.MaxClicks
+	}
+	
 	_, err := DB.Exec(
-		"INSERT INTO links (slug, original_url, user_id) VALUES ($1, $2, $3)",
-		slug, input.URL, userID,
+		"INSERT INTO links (slug, original_url, user_id, expired_at, max_clicks) VALUES ($1, $2, $3, $4, $5)",
+		slug, input.URL, userID, expiredAt, maxClicks,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan link"})
