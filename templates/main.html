@@ -815,15 +815,15 @@
           <div class="options-row">
             <div class="option-group">
               <span class="option-label">Slug kustom</span>
-              <input class="option-input" type="text" placeholder="nama-kustom" />
+              <input class="option-input" type="text" placeholder="nama-kustom" id="slugInput" />
             </div>
             <div class="option-group">
               <span class="option-label">Kedaluwarsa</span>
-              <input class="option-input" type="date" />
+              <input class="option-input" type="date" id="expiredInput" />
             </div>
             <div class="option-group">
               <span class="option-label">Batas klik</span>
-              <input class="option-input" type="number" placeholder="Tidak terbatas" />
+              <input class="option-input" type="number" placeholder="Tidak terbatas" id="maxClicksInput" />
             </div>
           </div>
 
@@ -1174,12 +1174,54 @@
       }
 
       const slugs = ["abc123", "xyz789", "q1w2e3", "snip42", "go2024"];
-      function shortenUrl() {
-        const input = document.getElementById("urlInput").value;
-        if (!input) return;
-        const slug = slugs[Math.floor(Math.random() * slugs.length)];
-        document.getElementById("resultUrl").textContent = "snip.io/" + slug;
-        document.getElementById("resultBox").style.display = "flex";
+
+      async function shortenUrl() {
+        const url = document.getElementById("urlInput").value;
+        const slug = document.getElementById("slugInput").value;
+        const expiredAt = document.getElementById("expiredInput").value;
+        const maxClicks = document.getElementById("maxClicksInput").value;
+
+        if (!url) {
+          alert("Masukkan URL terlebih dahulu");
+          return;
+        }
+
+        const btn = document.querySelector(".btn-primary");
+        btn.disabled = true;
+        btn.TextContent = "Memproses...";
+
+        const token = sessionStorage.getItem("access_token");
+
+        //Payload
+        const payload = { url: url };
+        if (slug) payload.slug = slug;
+        if (expiredAt) payload.expired_at = expiredAt;
+        if (maxClicks) payload.max_clicks = parseInt(maxClicks);
+
+        try {
+          const response = await fetch("/api/shorten", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            document.getElementById("resultUrl").textContent = data.short_url;
+            document.getElementById("resultBox").style.display = "flex";
+          } else {
+            alert(data.error);
+          }
+        } catch (error) {
+          alert("Terjadi kesalahan, coba lagi");
+        } finally {
+          btn.disabled = false;
+          btn.TextContent = "Persingkat";
+        }
       }
 
       function copyUrl() {
