@@ -126,3 +126,39 @@ func GetLinks(c *gin.Context){
 
 	c.JSON(http.StatusOK, gin.H{"links": links})
 }
+
+func GetStats(c *gin.Context) {
+	userID := c.MustGet("user_id")
+
+	//Total Link
+	var totalLinks int
+	DB.QueryRow("SELECT COUNT(*) FROM links WHERE user_id = $1", userID).Scan(&totalLinks)
+
+	//Total Klik
+	var totalClicks int
+	DB.QueryRow("SELECT COALESCE(SUM(clicks), 0) FROM links WHERE user_id = $1", userID).Scan(&totalClicks)
+
+	//Link Aktif 
+	var activeLinks int
+	DB.QueryRow(
+		`SELECT COUNT(*) FROM links
+		WHERE user_id = $1
+		AND (expired_at IS NULL OR expired_at > NOW())
+		`, userID
+	).Scan(&activeLinks)
+
+	//Klik hari ini 
+	var clicksToday int
+	DB.QueryRow(`
+		SELECT COUNT(*) FROM click_logs
+		WHERE link_id IN (SELECT id FROM links WHERE user_id = $1)
+		AND clicked_at >= CURRENT_DATE
+	`, userID).Scan(&clicksToday)
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_links":   totalLinks,
+		"total_clicks":  totalClicks,
+		"active_links":  activeLinks,
+		"clicks_today":  clicksToday,
+	})
+}
