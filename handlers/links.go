@@ -109,19 +109,26 @@ func GetLinks(c *gin.Context){
 		var expiredAt sql.NullTime
 		var createdAt time.Time
 
-		err := rows.Scan(&id, &slug, &originalURL, &clicks, &expiredAt, &createdAt)
-		if err != nil{
-			continue
-		}
+		rows.Scan(&id, &slug, &originalURL, &clicks, &expiredAt, &createdAt)
 
+		status := "aktif"
+		if expiredAt.Valid && expiredAt.Time.Before(time.Now()) {
+			status = "expired"
+		}
+		
 		links = append(links, gin.H{
 			"id":           id,
 			"slug":         slug,
 			"original_url": originalURL,
 			"short_url":    "http://localhost:9090/" + slug,
 			"clicks":       clicks,
-			"created_at":   createdAt,
+			"status":		status,
+			"created_at":   createdAt.Format("2 Jan 2006"),
 		})
+	}
+
+	if links == nil {
+		links = []gin.H{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"links": links})

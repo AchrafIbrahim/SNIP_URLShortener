@@ -137,6 +137,7 @@ func main() {
 		auth.POST("/logout", handlers.Logout)
 		auth.PUT("/change-password", handlers.ChangePassword)
 		auth.DELETE("/account", handlers.DeleteAccount)
+		auth.GET("/stats", handlers.GetStats)
 	}
 
 	protected := r.Group("/")
