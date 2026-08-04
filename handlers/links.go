@@ -134,6 +134,40 @@ func GetLinks(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{"links": links})
 }
 
+func DeleteLink(c *gin.Context) {
+	userID := c.MustGet("user_id")
+	linkID := c.Param("id")
+
+	//pastikan link milik user yg login
+	var ownerID int
+	err := DB.QueryRow(
+		"SELECT user_id FROM links WHERE id = $1", linkID,
+	).Scan(&ownerID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Link tidak ditemukan"})
+		return
+	}
+
+	if ownerID != userID.(int) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Tidak punya akses"})
+		return
+	}
+
+	//Hapus click_logs dulu
+	DB.Exec("DELETE FROM click_logs WHERE link_id = $1", linkID)
+	//Hapus Link
+	_, err = DB.Exec("DELETE FROM links WHERE id = $1", linkID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus link"})
+		return
+	}
+	
+	LogAudit(userID, "DELETE_LINK", "User menghapus link id: "+linkID, c)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Link berhasil dihapus"})
+}
+
 func GetStats(c *gin.Context) {
 	userID := c.MustGet("user_id")
 

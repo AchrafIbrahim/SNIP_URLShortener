@@ -138,6 +138,7 @@ func main() {
 		auth.PUT("/change-password", handlers.ChangePassword)
 		auth.DELETE("/account", handlers.DeleteAccount)
 		auth.GET("/stats", handlers.GetStats)
+		auth.DELETE("/links/:id", handlers.DeleteLink)
 	}
 
 	protected := r.Group("/")

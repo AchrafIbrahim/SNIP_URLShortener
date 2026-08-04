@@ -1335,12 +1335,16 @@
             method: "DELETE",
           });
 
+          const data = await response.json();
+
           if (response.ok) {
+            alert(data.message);
             loadDashboard();
           } else {
-            alert("Gagal menghapus link");
+            alert(data.error || "Gagal menghapus link");
           }
         } catch (error) {
+          console.error("Delete link error:", error);
           alert("Terjadi kesalahan");
         }
       }
