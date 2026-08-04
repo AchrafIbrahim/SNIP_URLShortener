@@ -929,7 +929,7 @@
           <div id="table-body"></div>
 
           <div class="pagination">
-            <span class="pagination-info">Menampilkan 0 link</span>
+            <span class="pagination-info" id="pagination-info">Menampilkan 0 link</span>
             <div class="pagination-btns" id="pagination-btns"></div>
           </div>
         </div>
@@ -938,6 +938,12 @@
 
     <script>
       const accessTokenFromStorage = localStorage.getItem("access_token");
+
+      //Pagination variabel
+      const ITEMS_PER_PAGE = 5;
+      let currentPage = 1;
+      let allLinks = [];
+
       if (accessTokenFromStorage) {
         sessionStorage.setItem("access_token", accessTokenFromStorage);
         sessionStorage.setItem("refresh_token", localStorage.getItem("refresh_token"));
@@ -1143,6 +1149,93 @@
         setTimeout(() => (btn.textContent = "Salin"), 1500);
       }
 
+      function renderPaginationInfo() {
+        const paginationInfo = document.getElementById("pagination-info");
+        console.log("allLinks:", allLinks);
+        console.log("jumlah allLinks:", allLinks.length);
+        console.log("currentPage:", currentPage);
+
+        const totalLinks = allLinks.length;
+
+        if (totalLinks === 0) {
+          paginationInfo.textContent = "Tidak ada link";
+          return;
+        }
+
+        const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+        const end = Math.min(currentPage * ITEMS_PER_PAGE, totalLinks);
+
+        paginationInfo.textContent = `Menampilkan ${start}-${end} dari ${totalLinks} link`;
+      }
+
+      function renderPagination() {
+        const paginationButtons = document.getElementById("pagination-btns");
+        const totalPages = Math.ceil(allLinks.length / ITEMS_PER_PAGE);
+        paginationButtons.innerHTML = "";
+
+        if (totalPages <= 1) {
+          return;
+        }
+
+        //Previous btn
+        const prevButton = document.createElement("button");
+
+        prevButton.className = "page-btn";
+        prevButton.textContent = "<";
+        prevButton.disabled = currentPage === 1;
+
+        prevButton.onclick = () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderCurrentPage();
+          }
+        };
+
+        paginationButtons.appendChild(prevButton);
+
+        //page number btn
+        for (let page = 1; page <= totalPages; page++) {
+          const button = document.createElement("button");
+
+          button.className = `page-btn ${page === currentPage ? "active" : ""}`;
+          button.textContent = page;
+
+          button.onclick = () => {
+            currentPage = page;
+            renderCurrentPage();
+          };
+
+          paginationButtons.appendChild(button);
+        }
+
+        //next btn
+        const nextButton = document.createElement("button");
+
+        nextButton.className = "page-btn";
+        nextButton.textContent = ">";
+        nextButton.disabled = currentPage === totalPages;
+
+        nextButton.onclick = () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            renderCurrentPage();
+          }
+        };
+
+        paginationButtons.appendChild(nextButton);
+      }
+
+      function renderCurrentPage() {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+
+        const currentLinks = allLinks.slice(startIndex, endIndex);
+
+        renderLinks(currentLinks);
+        renderPaginationInfo();
+        renderPagination();
+      }
+
       async function loadDashboard() {
         const token = sessionStorage.getItem("access_token");
 
@@ -1163,7 +1256,12 @@
           const linksData = await linksResponse.json();
 
           if (linksResponse.ok) {
-            renderLinks(linksData.links);
+            allLinks = linksData.links || [];
+
+            currentPage = 1;
+
+            renderPagination();
+            renderCurrentPage();
           }
         } catch (error) {
           console.log("Error:", error);
