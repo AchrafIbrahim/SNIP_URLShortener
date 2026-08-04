@@ -871,24 +871,20 @@
 
         <div class="stats-cards">
           <div class="stat-card">
-            <div class="stat-card-num">24</div>
+            <div class="stat-card-num" id="stat-total-links">-</div>
             <div class="stat-card-label">Total link</div>
-            <div class="stat-card-change">+3 minggu ini</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-num">8,432</div>
+            <div class="stat-card-num" id="stat-total-clicks">-</div>
             <div class="stat-card-label">Total klik</div>
-            <div class="stat-card-change">+12% vs bulan lalu</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-num">21</div>
+            <div class="stat-card-num" id="stat-active-links">-</div>
             <div class="stat-card-label">Link aktif</div>
-            <div class="stat-card-change" style="color: var(--text-faint)">3 kedaluwarsa</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-num">351</div>
+            <div class="stat-card-num" id="stat-clicks-today"></div>
             <div class="stat-card-label">Klik hari ini</div>
-            <div class="stat-card-change">+8% vs kemarin</div>
           </div>
         </div>
 
@@ -909,115 +905,7 @@
             <span class="th">Aksi</span>
           </div>
 
-          <!-- Row 1 -->
-          <div class="table-row">
-            <div class="url-cell">
-              <a class="short-link" href="#">snip.io/go-docs</a>
-            </div>
-            <div class="url-cell">
-              <span class="original-url">https://go.dev/doc/effective_go</span>
-            </div>
-            <div class="td">
-              <div class="clicks-bar-wrap">
-                <span class="td-mono">2,841</span>
-                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 85%"></div></div>
-              </div>
-            </div>
-            <div class="td"><span class="status-pill status-active">● aktif</span></div>
-            <div class="td td-muted">12 Mei 2026</div>
-            <div class="td row-actions">
-              <button class="icon-btn" title="Salin">⎘</button>
-              <button class="icon-btn" title="Hapus">✕</button>
-            </div>
-          </div>
-
-          <!-- Row 2 -->
-          <div class="table-row">
-            <div class="url-cell">
-              <a class="short-link" href="#">snip.io/portfolio</a>
-            </div>
-            <div class="url-cell">
-              <span class="original-url">https://myportfolio.vercel.app/about-me-and-my-projects</span>
-            </div>
-            <div class="td">
-              <div class="clicks-bar-wrap">
-                <span class="td-mono">1,204</span>
-                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 36%"></div></div>
-              </div>
-            </div>
-            <div class="td"><span class="status-pill status-active">● aktif</span></div>
-            <div class="td td-muted">5 Mei 2026</div>
-            <div class="td row-actions">
-              <button class="icon-btn" title="Salin">⎘</button>
-              <button class="icon-btn" title="Hapus">✕</button>
-            </div>
-          </div>
-
-          <!-- Row 3 -->
-          <div class="table-row">
-            <div class="url-cell">
-              <a class="short-link" href="#">snip.io/htmx-intro</a>
-            </div>
-            <div class="url-cell">
-              <span class="original-url">https://htmx.org/docs/#introduction</span>
-            </div>
-            <div class="td">
-              <div class="clicks-bar-wrap">
-                <span class="td-mono">987</span>
-                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 29%"></div></div>
-              </div>
-            </div>
-            <div class="td"><span class="status-pill status-active">● aktif</span></div>
-            <div class="td td-muted">28 Apr 2026</div>
-            <div class="td row-actions">
-              <button class="icon-btn" title="Salin">⎘</button>
-              <button class="icon-btn" title="Hapus">✕</button>
-            </div>
-          </div>
-
-          <!-- Row 4 -->
-          <div class="table-row">
-            <div class="url-cell">
-              <a class="short-link" href="#">snip.io/promo-lebaran</a>
-            </div>
-            <div class="url-cell">
-              <span class="original-url">https://tokopedia.com/promo/lebaran-2026/semua-kategori</span>
-            </div>
-            <div class="td">
-              <div class="clicks-bar-wrap">
-                <span class="td-mono">3,241</span>
-                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 96%"></div></div>
-              </div>
-            </div>
-            <div class="td"><span class="status-pill status-expired">○ expired</span></div>
-            <div class="td td-muted">1 Apr 2026</div>
-            <div class="td row-actions">
-              <button class="icon-btn" title="Salin">⎘</button>
-              <button class="icon-btn" title="Hapus">✕</button>
-            </div>
-          </div>
-
-          <!-- Row 5 -->
-          <div class="table-row">
-            <div class="url-cell">
-              <a class="short-link" href="#">snip.io/gin-github</a>
-            </div>
-            <div class="url-cell">
-              <span class="original-url">https://github.com/gin-gonic/gin</span>
-            </div>
-            <div class="td">
-              <div class="clicks-bar-wrap">
-                <span class="td-mono">159</span>
-                <div class="clicks-bar"><div class="clicks-bar-fill" style="width: 5%"></div></div>
-              </div>
-            </div>
-            <div class="td"><span class="status-pill status-active">● aktif</span></div>
-            <div class="td td-muted">17 Mei 2026</div>
-            <div class="td row-actions">
-              <button class="icon-btn" title="Salin">⎘</button>
-              <button class="icon-btn" title="Hapus">✕</button>
-            </div>
-          </div>
+          <div id="table-body"></div>
 
           <div class="pagination">
             <span class="pagination-info">Menampilkan 1–5 dari 24 link</span>
@@ -1061,7 +949,10 @@
       }
 
       async function fetchWithAuth(url, options = {}) {
+        console.log("fetchWithAuth dipanggil:", url);
         const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
+        console.log("expiresAt:", expiresAt);
+        console.log("token:", sessionStorage.getItem("access_token"));
 
         if (!isNaN(expiresAt) && Date.now() > expiresAt - 60000) {
           const refreshed = await refreshAccessToken();
@@ -1077,6 +968,7 @@
           Authorization: "Bearer " + token,
         };
 
+        console.log("Fetch ke:", url);
         return fetch(url, options);
       }
 
@@ -1170,7 +1062,10 @@
         document.getElementById("page-" + name).classList.add("active");
         const tabs = document.querySelectorAll(".nav-tab");
         if (name === "landing") tabs[0].classList.add("active");
-        else tabs[1].classList.add("active");
+        else {
+          tabs[1].classList.add("active");
+          loadDashboard();
+        }
       }
 
       const slugs = ["abc123", "xyz789", "q1w2e3", "snip42", "go2024"];
@@ -1230,6 +1125,109 @@
         const btn = event.target;
         btn.textContent = "Tersalin!";
         setTimeout(() => (btn.textContent = "Salin"), 1500);
+      }
+
+      async function loadDashboard() {
+        const token = sessionStorage.getItem("access_token");
+
+        try {
+          //load stats
+          const statsResponse = await fetchWithAuth("/api/stats");
+          const statsData = await statsResponse.json();
+
+          if (statsResponse.ok) {
+            document.getElementById("stat-total-links").textContent = statsData.total_links;
+            document.getElementById("stat-total-clicks").textContent = statsData.total_clicks.toLocaleString();
+            document.getElementById("stat-active-links").textContent = statsData.active_links;
+            document.getElementById("stat-clicks-today").textContent = statsData.clicks_today;
+          }
+
+          //Load links
+          const linkResponse = await fetchWithAuth("/api/links");
+          const linksData = await linksResponse.json();
+
+          if (linksResponse.ok) {
+            renderLinks(linksData.links);
+          }
+        } catch (error) {
+          console.log("Error:", error);
+        }
+      }
+
+      function renderLinks(links) {
+        const tableBody = document.getElementById("table-body");
+
+        if (links.length === 0) {
+          tableBody.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🔗</div>
+              <div class="empty-text">Belum ada link yang dipersingkat</div>
+            </div>
+          `;
+          return;
+        }
+
+        //max clicks for progress bar
+        const maxClicks = Math.max(...links.map((l) => l.clicks), 1);
+
+        tableBody.innerHTML = links
+          .map(
+            (link) => `
+          <div class="table-row">
+            <div class="url-cell">
+                <a class="short-link" href="${link.short_url}" target="_blank">
+                    ${link.short_url.replace("http://localhost:9090/", "snip/")}
+                </a>
+            </div>
+            <div class="url-cell">
+                <span class="original-url">${link.original_url}</span>
+            </div>
+            <div class="td">
+                <div class="clicks-bar-wrap">
+                    <span class="td-mono">${link.clicks.toLocaleString()}</span>
+                    <div class="clicks-bar">
+                        <div class="clicks-bar-fill" style="width: ${Math.round((link.clicks / maxClicks) * 100)}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="td">
+                <span class="status-pill ${link.status === "aktif" ? "status-active" : "status-expired"}">
+                    ${link.status === "aktif" ? "● aktif" : "○ expired"}
+                </span>
+            </div>
+            <div class="td td-muted">${link.created_at}</div>
+            <div class="td row-actions">
+                <button class="icon-btn" title="Salin" onclick="copyLink('${link.short_url}')">⎘</button>
+                <button class="icon-btn" title="Hapus" onclick="deleteLink(${link.id})">✕</button>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      function copyLink(url) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert("Link berhasil disalin!");
+        });
+      }
+
+      async function deleteLink(id) {
+        if (!confirm("Hapus link ini?")) return;
+
+        try {
+          const response = await fetchWithAuth(`/api/links/${id}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            loadDashboard();
+          } else {
+            alert("Gagal menghapus link");
+          }
+        } catch (error) {
+          alert("Terjadi kesalahan");
+        }
       }
 
       loadUserInfo();

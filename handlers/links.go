@@ -151,7 +151,7 @@ func GetStats(c *gin.Context) {
 		`SELECT COUNT(*) FROM links
 		WHERE user_id = $1
 		AND (expired_at IS NULL OR expired_at > NOW())
-		`, userID
+		`, userID,
 	).Scan(&activeLinks)
 
 	//Klik hari ini 
