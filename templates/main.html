@@ -521,10 +521,11 @@
       }
       .table-head {
         display: grid;
-        grid-template-columns: 1.8fr 1.2fr 80px 90px 110px 80px;
-        padding: 10px 20px;
+        grid-template-columns: 1.4fr 1.2fr 80px 90px 110px 80px;
+        padding: 14px 20px;
         border-bottom: 1px solid var(--border);
         background: var(--bg);
+        align-items: center;
       }
       .th {
         font-size: 11px;
@@ -536,7 +537,7 @@
       }
       .table-row {
         display: grid;
-        grid-template-columns: 1.8fr 1.2fr 80px 90px 110px 80px;
+        grid-template-columns: 1.4fr 1.2fr 80px 90px 110px 80px;
         padding: 14px 20px;
         border-bottom: 1px solid var(--border);
         align-items: center;
@@ -572,14 +573,14 @@
         text-decoration: underline;
       }
       .original-url {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 13px;
+        display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 100%;
       }
       .url-cell {
+        min-width: 0;
         overflow: hidden;
       }
 
@@ -661,6 +662,26 @@
       }
       .empty-text {
         font-size: 14px;
+      }
+
+      .clicks-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .clicks-bar {
+        width: 50px;
+        height: 4px;
+        background: #e5e5e5;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .clicks-bar-fill {
+        height: 100%;
+        border-radius: 4px;
       }
 
       /* DIVIDER LINE */
@@ -908,13 +929,8 @@
           <div id="table-body"></div>
 
           <div class="pagination">
-            <span class="pagination-info">Menampilkan 1–5 dari 24 link</span>
-            <div class="pagination-btns">
-              <button class="page-btn active">1</button>
-              <button class="page-btn">2</button>
-              <button class="page-btn">3</button>
-              <button class="page-btn">›</button>
-            </div>
+            <span class="pagination-info">Menampilkan 0 link</span>
+            <div class="pagination-btns" id="pagination-btns"></div>
           </div>
         </div>
       </div>
@@ -1143,7 +1159,7 @@
           }
 
           //Load links
-          const linkResponse = await fetchWithAuth("/api/links");
+          const linksResponse = await fetchWithAuth("/api/links");
           const linksData = await linksResponse.json();
 
           if (linksResponse.ok) {
@@ -1182,14 +1198,15 @@
             <div class="url-cell">
                 <span class="original-url">${link.original_url}</span>
             </div>
-            <div class="td">
-                <div class="clicks-bar-wrap">
-                    <span class="td-mono">${link.clicks.toLocaleString()}</span>
-                    <div class="clicks-bar">
-                        <div class="clicks-bar-fill" style="width: ${Math.round((link.clicks / maxClicks) * 100)}%"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="td clicks-cell">
+              <span class="td-mono">${link.clicks.toLocaleString()}</span>
+              <div class="clicks-bar">
+                <div
+                  class="clicks-bar-fill"
+                  style="width: ${maxClicks > 0 ? Math.round((link.clicks / maxClicks) * 100) : 0}%"
+                ></div>
+              </div>
+            </div>                                          
             <div class="td">
                 <span class="status-pill ${link.status === "aktif" ? "status-active" : "status-expired"}">
                     ${link.status === "aktif" ? "● aktif" : "○ expired"}
