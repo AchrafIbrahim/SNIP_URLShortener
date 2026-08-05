@@ -886,8 +886,22 @@
         </div>
 
         <div class="quick-bar">
-          <input class="url-input" type="url" placeholder="Persingkat URL baru..." style="background: var(--bg)" />
-          <button class="btn-primary" style="padding: 10px 20px; font-size: 13px">Persingkat</button>
+          <input class="url-input" type="url" placeholder="Persingkat URL baru..." id="dashUrlInput" style="background: var(--bg)" />
+          <button class="btn-primary" style="padding: 10px 20px; font-size: 13px" onclick="shortenFromDashboard()">Persingkat</button>
+        </div>
+        <div class="options-row" style="padding: 0 20px 16px">
+          <div class="option-group">
+            <span class="option-label">Slug kustom</span>
+            <input class="option-input" type="text" placeholder="nama-kustom" id="dashSlugInput" />
+          </div>
+          <div class="option-group">
+            <span class="option-label">Kedaluwarsa</span>
+            <input class="option-input" type="date" id="dashExpiredInput" />
+          </div>
+          <div class="option-group">
+            <span class="option-label">Batas klik</span>
+            <input class="option-input" type="number" placeholder="Tidak terbatas" id="dashMaxClicksInput" />
+          </div>
         </div>
 
         <div class="stats-cards">
@@ -1346,6 +1360,49 @@
         } catch (error) {
           console.error("Delete link error:", error);
           alert("Terjadi kesalahan");
+        }
+      }
+
+      async function shortenFromDashboard() {
+        const url = document.getElementById("dashUrlInput").value;
+        const slug = document.getElementById("dashSlugInput").value;
+        const expiredAt = document.getElementById("dashExpiredInput").value;
+        const maxClicks = document.getElementById("dashMaxClicksInput").value;
+
+        if (!url) {
+          alert("Masukkan URL terlebih dahulu");
+          return;
+        }
+
+        const btn = document.querySelector(".quick-bar .btn-primary");
+        btn.disabled = true;
+        btn.textContent = "Memproses...";
+
+        const payload = { url: url };
+        if (slug) payload.slug = slug;
+        if (expiredAt) payload.expired_at = expiredAt;
+        if (maxClicks) payload.max_clicks = parseInt(maxClicks);
+
+        try {
+          const response = await fetchWithAuth("/api/shorten", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Link berhasil dipersingkat: " + data.short_url);
+            loadDashboard(); // Refresh tabel setelah tambah link baru
+          } else {
+            alert(data.error);
+          }
+        } catch (error) {
+          alert("Terjadi kesalahan, coba lagi");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Persingkat";
         }
       }
 
