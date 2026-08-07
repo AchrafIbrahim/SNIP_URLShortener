@@ -23,14 +23,14 @@ func Redirect(c *gin.Context){
 
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.html", gin.H{
-			"Slug": slug
+			"Slug": slug,
 		})
 		return
 	}
 
 	if expiredAt.Valid && expiredAt.Time.Before(time.Now()){
 		c.HTML(http.StatusGone, "expired.html", gin.H{
-			"Slug": slug
+			"Slug": slug,
 		})
 		return
 	}

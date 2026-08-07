@@ -1267,6 +1267,11 @@
             document.getElementById("stat-total-clicks").textContent = statsData.total_clicks.toLocaleString();
             document.getElementById("stat-active-links").textContent = statsData.active_links;
             document.getElementById("stat-clicks-today").textContent = statsData.clicks_today;
+
+            // Tambahkan info expired links
+            const expiredLinks = statsData.total_links - statsData.active_links;
+            const expiredEl = document.getElementById("stat-expired-links");
+            if (expiredEl) expiredEl.textContent = expiredLinks + " kedaluwarsa";
           }
 
           //Load links
