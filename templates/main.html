@@ -930,7 +930,7 @@
         <div class="table-header">
           <span class="table-title">Semua link</span>
           <div class="filter-row">
-            <input class="search-input" type="text" placeholder="Cari link..." />
+            <input class="search-input" type="text" id="search-input" autocomplete="off" placeholder="Cari link..." />
           </div>
         </div>
 
@@ -962,6 +962,13 @@
       let currentPage = 1;
       let allLinks = [];
 
+      //Search Algorithm
+      document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("search-input");
+
+        console.log("Search input:", searchInput);
+      });
+
       if (accessTokenFromStorage) {
         sessionStorage.setItem("access_token", accessTokenFromStorage);
         sessionStorage.setItem("refresh_token", localStorage.getItem("refresh_token"));
@@ -991,8 +998,6 @@
       async function fetchWithAuth(url, options = {}) {
         console.log("fetchWithAuth dipanggil:", url);
         const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
-        console.log("expiresAt:", expiresAt);
-        console.log("token:", sessionStorage.getItem("access_token"));
 
         if (!isNaN(expiresAt) && Date.now() > expiresAt - 60000) {
           const refreshed = await refreshAccessToken();
