@@ -860,15 +860,15 @@
 
       <div class="stats-row">
         <div class="stat-item">
-          <span class="stat-num">1.2M</span>
+          <span class="stat-num" id="landing-total-links">-</span>
           <span class="stat-label">URL dipersingkat</span>
         </div>
         <div class="stat-item">
-          <span class="stat-num">48M</span>
+          <span class="stat-num" id="landing-total-clicks">-</span>
           <span class="stat-label">Total klik</span>
         </div>
         <div class="stat-item">
-          <span class="stat-num">99.9%</span>
+          <span class="stat-num">-</span>
           <span class="stat-label">Uptime</span>
         </div>
       </div>
@@ -1296,6 +1296,31 @@
         renderLinks(currentLinks);
       }
 
+      async function loadStats() {
+        try {
+          const statsResponse = await fetchWithAuth("/api/stats");
+          const statsData = await statsResponse.json();
+
+          if (statsResponse.ok) {
+            // Update beranda
+            document.getElementById("landing-total-links").textContent = statsData.total_links;
+            document.getElementById("landing-total-clicks").textContent = statsData.total_clicks.toLocaleString();
+
+            // Update dashboard cards
+            document.getElementById("stat-total-links").textContent = statsData.total_links;
+            document.getElementById("stat-total-clicks").textContent = statsData.total_clicks.toLocaleString();
+            document.getElementById("stat-active-links").textContent = statsData.active_links;
+            document.getElementById("stat-clicks-today").textContent = statsData.clicks_today;
+
+            const expiredLinks = statsData.total_links - statsData.active_links;
+            const expiredEl = document.getElementById("stat-expired-links");
+            if (expiredEl) expiredEl.textContent = expiredLinks + " kedaluwarsa";
+          }
+        } catch (error) {
+          console.log("Error loadStats:", error);
+        }
+      }
+
       async function loadDashboard() {
         const token = sessionStorage.getItem("access_token");
 
@@ -1309,6 +1334,10 @@
             document.getElementById("stat-total-clicks").textContent = statsData.total_clicks.toLocaleString();
             document.getElementById("stat-active-links").textContent = statsData.active_links;
             document.getElementById("stat-clicks-today").textContent = statsData.clicks_today;
+
+            //Stats beranda
+            document.getElementById("landing-total-clicks").textContent = statsData.total_clicks.toLocaleString();
+            document.getElementById("landing-total-links").textContent = statsData.total_links;
 
             // Tambahkan info expired links
             const expiredLinks = statsData.total_links - statsData.active_links;
@@ -1461,6 +1490,7 @@
       }
 
       loadUserInfo();
+      loadStats();
     </script>
   </body>
 </html>
