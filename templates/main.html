@@ -961,12 +961,25 @@
       const ITEMS_PER_PAGE = 5;
       let currentPage = 1;
       let allLinks = [];
+      let filteredLinks = [];
 
       //Search Algorithm
       document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById("search-input");
 
         console.log("Search input:", searchInput);
+
+        searchInput.addEventListener("input", function () {
+          const keyword = this.value;
+          filteredLinks = searchLinks(keyword);
+          console.log("Keyword:", keyword);
+          console.log("filteredLinks:", filteredLinks);
+          console.log("Jumlah filteredLinks:", filteredLinks.length);
+          currentPage = 1;
+          renderPagination();
+          renderCurrentPage();
+          renderPaginationInfo();
+        });
       });
 
       if (accessTokenFromStorage) {
@@ -983,6 +996,29 @@
       const token = sessionStorage.getItem("access_token");
       if (!token) {
         window.location.href = "/login";
+      }
+
+      //Search function
+      function searchLinks(keyword) {
+        keyword = keyword.toLowerCase().trim();
+
+        console.log("=== SEARCH DEBUG ===");
+        console.log("Keyword:", keyword);
+        console.log("allLinks:", allLinks);
+        console.log("Jumlah allLinks:", allLinks.length);
+
+        if (keyword === "") {
+          return allLinks;
+        }
+
+        return allLinks.filter((link) => {
+          console.log("Checking:", link);
+          const shortUrl = link.short_url.toLowerCase();
+          const originalUrl = link.original_url.toLowerCase();
+          console.log("Short URL:", shortUrl);
+          console.log("Original URL:", originalUrl);
+          return shortUrl.includes(keyword) || originalUrl.includes(keyword);
+        });
       }
 
       function toggleDropdown() {
@@ -1174,11 +1210,8 @@
 
       function renderPaginationInfo() {
         const paginationInfo = document.getElementById("pagination-info");
-        console.log("allLinks:", allLinks);
-        console.log("jumlah allLinks:", allLinks.length);
-        console.log("currentPage:", currentPage);
 
-        const totalLinks = allLinks.length;
+        const totalLinks = filteredLinks.length;
 
         if (totalLinks === 0) {
           paginationInfo.textContent = "Tidak ada link";
@@ -1193,7 +1226,7 @@
 
       function renderPagination() {
         const paginationButtons = document.getElementById("pagination-btns");
-        const totalPages = Math.ceil(allLinks.length / ITEMS_PER_PAGE);
+        const totalPages = Math.ceil(filteredLinks.length / ITEMS_PER_PAGE);
         paginationButtons.innerHTML = "";
 
         if (totalPages <= 1) {
@@ -1211,6 +1244,8 @@
           if (currentPage > 1) {
             currentPage--;
             renderCurrentPage();
+            renderPagination();
+            renderPaginationInfo();
           }
         };
 
@@ -1226,6 +1261,8 @@
           button.onclick = () => {
             currentPage = page;
             renderCurrentPage();
+            renderPagination();
+            renderPaginationInfo();
           };
 
           paginationButtons.appendChild(button);
@@ -1242,6 +1279,8 @@
           if (currentPage < totalPages) {
             currentPage++;
             renderCurrentPage();
+            renderPagination();
+            renderPaginationInfo();
           }
         };
 
@@ -1252,11 +1291,9 @@
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const endIndex = startIndex + ITEMS_PER_PAGE;
 
-        const currentLinks = allLinks.slice(startIndex, endIndex);
+        const currentLinks = filteredLinks.slice(startIndex, endIndex);
 
         renderLinks(currentLinks);
-        renderPaginationInfo();
-        renderPagination();
       }
 
       async function loadDashboard() {
@@ -1286,10 +1323,13 @@
           if (linksResponse.ok) {
             allLinks = linksData.links || [];
 
+            filteredLinks = allLinks;
+
             currentPage = 1;
 
             renderPagination();
             renderCurrentPage();
+            renderPaginationInfo();
           }
         } catch (error) {
           console.log("Error:", error);
