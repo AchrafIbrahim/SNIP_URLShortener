@@ -967,14 +967,9 @@
       document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById("search-input");
 
-        console.log("Search input:", searchInput);
-
         searchInput.addEventListener("input", function () {
           const keyword = this.value;
           filteredLinks = searchLinks(keyword);
-          console.log("Keyword:", keyword);
-          console.log("filteredLinks:", filteredLinks);
-          console.log("Jumlah filteredLinks:", filteredLinks.length);
           currentPage = 1;
           renderPagination();
           renderCurrentPage();
@@ -1002,21 +997,13 @@
       function searchLinks(keyword) {
         keyword = keyword.toLowerCase().trim();
 
-        console.log("=== SEARCH DEBUG ===");
-        console.log("Keyword:", keyword);
-        console.log("allLinks:", allLinks);
-        console.log("Jumlah allLinks:", allLinks.length);
-
         if (keyword === "") {
           return allLinks;
         }
 
         return allLinks.filter((link) => {
-          console.log("Checking:", link);
           const shortUrl = link.short_url.toLowerCase();
           const originalUrl = link.original_url.toLowerCase();
-          console.log("Short URL:", shortUrl);
-          console.log("Original URL:", originalUrl);
           return shortUrl.includes(keyword) || originalUrl.includes(keyword);
         });
       }
@@ -1032,7 +1019,6 @@
       }
 
       async function fetchWithAuth(url, options = {}) {
-        console.log("fetchWithAuth dipanggil:", url);
         const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
 
         if (!isNaN(expiresAt) && Date.now() > expiresAt - 60000) {
@@ -1049,7 +1035,6 @@
           Authorization: "Bearer " + token,
         };
 
-        console.log("Fetch ke:", url);
         return fetch(url, options);
       }
 
@@ -1133,7 +1118,7 @@
             window.location.href = "/login";
           }
         } catch (error) {
-          console.log("Error:", error);
+          console.error("Error:", error);
         }
       }
 
@@ -1317,7 +1302,7 @@
             if (expiredEl) expiredEl.textContent = expiredLinks + " kedaluwarsa";
           }
         } catch (error) {
-          console.log("Error loadStats:", error);
+          console.error("Error loadStats:", error);
         }
       }
 
@@ -1361,7 +1346,7 @@
             renderPaginationInfo();
           }
         } catch (error) {
-          console.log("Error:", error);
+          console.error("Error:", error);
         }
       }
 
