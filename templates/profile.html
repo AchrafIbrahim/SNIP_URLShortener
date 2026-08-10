@@ -258,9 +258,9 @@
         padding: 20px;
       }
 
-      .total-link p,
-      .total-klik p,
-      .link-aktif p {
+      .total-link span,
+      .total-klik span,
+      .link-aktif span {
         font-size: 22px;
         font-weight: 500;
         font-family: monospace;
@@ -350,6 +350,52 @@
       const token = sessionStorage.getItem("access_token");
       if (!token) {
         window.location.href = "/login";
+      }
+
+      async function fetchWithAuth(url, options = {}) {
+        const expiresAt = parseInt(sessionStorage.getItem("token_expires"));
+
+        if (!isNaN(expiresAt) && Date.now() > expiresAt - 60000) {
+          const refreshed = await refreshAccessToken();
+          if (!refreshed) {
+            window.location.href = "/login";
+            return;
+          }
+        }
+
+        const token = sessionStorage.getItem("access_token");
+        options.headers = {
+          ...options.headers,
+          Authorization: "Bearer " + token,
+        };
+
+        return fetch(url, options);
+      }
+
+      async function refreshAccessToken() {
+        const refreshToken = sessionStorage.getItem("refresh_token");
+        if (!refreshToken) return false;
+
+        try {
+          const response = await fetch("/refresh-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem("access_token", data.access_token);
+            sessionStorage.setItem("refresh_token", data.refresh_token);
+            sessionStorage.setItem("token_expires", Date.now() + data.expires_in * 1000);
+            return true;
+          } else {
+            sessionStorage.clear();
+            return false;
+          }
+        } catch {
+          return false;
+        }
       }
 
       function togglepassword(inputId, openId, closeId) {
@@ -562,6 +608,27 @@
         document.getElementById("delete-modal").style.display = "none";
       }
 
+      async function loadProfileStats() {
+        console.log("loadProfileStats dipanggil");
+        try {
+          const response = await fetchWithAuth("/api/stats");
+          console.log("Response stats:", response);
+          const data = await response.json();
+          console.log("Data stats:", data);
+
+          if (!response.ok) {
+            console.error("Gagal mengambil profile stats:", data);
+            return;
+          }
+
+          document.getElementById("profile-total-link").textContent = data.total_links;
+          document.getElementById("profile-total-klik").textContent = data.total_clicks.toLocaleString();
+          document.getElementById("profile-link-aktif").textContent = data.active_links;
+        } catch (error) {
+          console.error("Error load profile stats:", error);
+        }
+      }
+
       async function handleDeleteAccount() {
         const password = document.getElementById("delete-password").value;
         const btn = document.getElementById("btn-delete-account");
@@ -604,7 +671,10 @@
         }
       }
 
-      loadUserInfo();
+      document.addEventListener("DOMContentLoaded", () => {
+        loadUserInfo();
+        loadProfileStats();
+      });
     </script>
     <div class="profile-page">
       <a href="/main" class="profile-btn-to-home">
@@ -709,16 +779,16 @@
         <div class="divider"></div>
         <div class="stats-grid">
           <div class="total-link">
-            <p>24</p>
-            <label for="total-link">Total link</label>
+            <span id="profile-total-link">-</span>
+            <label for="profile-total-link">Total link</label>
           </div>
           <div class="total-klik">
-            <p>8.4K</p>
-            <label for="total-klik">Total klik</label>
+            <span id="profile-total-klik">-</span>
+            <label for="profile-total-klik">Total klik</label>
           </div>
           <div class="link-aktif">
-            <p>21</p>
-            <label for="link-aktif">Link aktif</label>
+            <span id="profile-link-aktif">-</span>
+            <label for="profile-link-aktif">Link aktif</label>
           </div>
         </div>
       </div>
