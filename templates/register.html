@@ -323,6 +323,9 @@
         event.preventDefault();
 
         const btn = document.querySelector('button[type="submit"].btn-register-snip');
+        if (!validateForm()) {
+          return;
+        }
 
         // Disable tombol saat proses berlangsung
         btn.disabled = true;
@@ -436,7 +439,7 @@
           <span id="password-confirm-error"></span>
         </div>
         <div class="check-term-condition">
-          <input type="checkbox" name="checkbox" id="checkbox" />
+          <input type="checkbox" name="checkbox" id="checkbox" required />
           <label for="checkbox">Saya menyetujui syarat & ketentuan serta kebijakan privasi</label>
         </div>
         <div class="btn-register">
