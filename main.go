@@ -105,6 +105,8 @@ func main() {
 		"/login", middleware.RateLimitMiddleware(), 
 		handlers.Login,
 	)
+	r.GET("/auth/google", handlers.GoogleLoginHandler)
+	r.GET("/auth/google/callback", handlers.GoogleCallBackHandler)
 
 	//Protected Routes
 	auth := r.Group("/api")

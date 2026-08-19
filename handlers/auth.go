@@ -6,10 +6,15 @@ import (
 	"time"
 	"fmt"
 	"strings"
+	"context"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+
 )
 
 func Register(c *gin.Context) {
@@ -442,4 +447,137 @@ func DeleteAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Akun berhasil dihapus"})
+}
+
+func GetGoogleAuthConfig() *oauth2.Config {
+	return &oauth2.Config{
+		ClientID: os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		RedirectURL: os.Getenv("GOOGLE_REDIRECT_URL"),
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	}
+}
+
+func GoogleLoginHandler(c *gin.Context) {
+	config := GetGoogleAuthConfig()
+	url := config.AuthCodeURL("state_token", oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func GoogleCallBackHandler(c *gin.Context) {
+	config := GetGoogleAuthConfig()
+	code := c.Query("code")
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization code tidak ditemukan"})
+		return
+	}
+
+	token, err := config.Exchange(context.Background(), code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menukar token dari google"})
+		return
+	}
+
+	client := config.Client(context.Background(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data user dari google"})
+		return
+	}
+	defer resp.Body.Close()
+
+	var googleUser struct {
+		ID string `json:"id"`
+		Email string `json:"email"`
+		Name string `json:"name"`
+		VerifiedEmail bool `json:"verified_email"`
+		Picture string `json:"picture"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&googleUser); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca response profil Google",})
+		return
+	}
+
+	if !googleUser.VerifiedEmail {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Email Google belum terverifikasi",
+		})
+		return
+	}
+
+	var userID int
+
+	err = DB.QueryRow(
+		"SELECT id FROM users WHERE email = $1",
+		googleUser.Email,
+	).Scan(&userID)
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Akun SNIP dengan email tersebut belum terdaftar",
+		})
+		return
+	}
+	
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userID,
+		"type":    "access",
+		"exp":     time.Now().Add(15 * time.Minute).Unix(),
+	})
+
+	accessTokenString, err := accessToken.SignedString(
+		[]byte(os.Getenv("JWT_SECRET")),
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal generate access token",
+		})
+		return
+	}
+
+	// Generate refresh token
+	refreshTokenValue, err := generateToken()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal generate refresh token",
+		})
+		return
+	}
+
+	expiredAt := time.Now().Add(7 * 24 * time.Hour)
+
+	_, err = DB.Exec(
+		"INSERT INTO refresh_tokens (user_id, token, expired_at) VALUES ($1, $2, $3)",
+		userID,
+		refreshTokenValue,
+		expiredAt,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal simpan refresh token",
+		})
+		return
+	}
+
+	LogAudit(
+		userID,
+		"LOGIN",
+		"User berhasil login dengan Google",
+		c,
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessTokenString,
+		"refresh_token": refreshTokenValue,
+		"expires_in":    900,
+	})
+	//c.Redirect(http.StatusSeeOther, "/main")
 }
