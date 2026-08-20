@@ -511,6 +511,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 	}
 
 	var userID int
+	var isNewUser bool
 
 	err = DB.QueryRow(
 		"SELECT id FROM users WHERE email = $1",
@@ -518,6 +519,30 @@ func GoogleCallBackHandler(c *gin.Context) {
 	).Scan(&userID)
 
 	if err != nil {
+		isNewUser = true
+		//new account 
+		randomPassword, err := generateToken()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat akun google",})
+			return
+		}
+
+		passwordHash, err := bcrypt.GenerateFromPassword([]byte(randomPassword), bcrypt.DefaultCost,)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat password akun google",})
+			return
+		}
+
+		err = DB.QueryRow(
+			`INSERT INTO users(email, password_hash, name, is_verified) VALUES ($1, $2, $3, $4) RETURNING id`,
+			googleUser.Email, string(passwordHash), googleUser.Name, true,
+		).Scan(&userID)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat akun google",})
+			return
+		}
+
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Akun SNIP dengan email tersebut belum terdaftar",
 		})
@@ -567,12 +592,22 @@ func GoogleCallBackHandler(c *gin.Context) {
 		return
 	}
 
-	LogAudit(
-		userID,
-		"LOGIN",
-		"User berhasil login dengan Google",
-		c,
-	)
+	if isNewUser {
+		LogAudit(
+			userID,
+			"LOGIN",
+			"User berhasil login dengan Google",
+			c,
+		)
+	} else {
+		LogAudit(
+			userID,
+			"LOGIN",
+			"User berhasil login dengan Google",
+			c,
+		)
+	}
+	
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  accessTokenString,
