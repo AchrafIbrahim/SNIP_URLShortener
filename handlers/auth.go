@@ -542,11 +542,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat akun google",})
 			return
 		}
-
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Akun SNIP dengan email tersebut belum terdaftar",
-		})
-		return
+		
 	}
 	
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -595,8 +591,8 @@ func GoogleCallBackHandler(c *gin.Context) {
 	if isNewUser {
 		LogAudit(
 			userID,
-			"LOGIN",
-			"User berhasil login dengan Google",
+			"REGISTER",
+			"User berhasil mendaftar dengan Google",
 			c,
 		)
 	} else {
@@ -609,10 +605,29 @@ func GoogleCallBackHandler(c *gin.Context) {
 	}
 	
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessTokenString,
-		"refresh_token": refreshTokenValue,
-		"expires_in":    900,
-	})
+	accessTokenJSON, _ := json.Marshal(accessTokenString)
+	refreshTokenJSON, _ := json.Marshal(refreshTokenValue)
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+
+	c.String(http.StatusOK,`
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Login Google</title>
+	</head>
+	<body>
+		<p>Login berhasil. Mengarahkan ke dashboard...</p>
+
+		<script>
+			sessionStorage.setItem("access_token", %s);
+			sessionStorage.setItem("refresh_token", %s);
+			sessionStorage.setItem("token_expires", Date.now() + 900 * 1000);
+
+			window.location.href = "/main";
+		</script>
+	</body>
+	</html>
+	`, string(accessTokenJSON), string(refreshTokenJSON))
 	//c.Redirect(http.StatusSeeOther, "/main")
 }
