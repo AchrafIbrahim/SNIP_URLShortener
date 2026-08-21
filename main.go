@@ -105,7 +105,8 @@ func main() {
 		"/login", middleware.RateLimitMiddleware(), 
 		handlers.Login,
 	)
-	r.GET("/auth/google", handlers.GoogleLoginHandler)
+	r.GET("/auth/google/login", handlers.GoogleLoginHandler)
+	r.GET("/auth/google/register", handlers.GoogleRegisterHandler)
 	r.GET("/auth/google/callback", handlers.GoogleCallBackHandler)
 
 	//Protected Routes

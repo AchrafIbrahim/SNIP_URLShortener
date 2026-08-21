@@ -8,6 +8,7 @@ import (
 	"strings"
 	"context"
 	"encoding/json"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -464,15 +465,27 @@ func GetGoogleAuthConfig() *oauth2.Config {
 
 func GoogleLoginHandler(c *gin.Context) {
 	config := GetGoogleAuthConfig()
-	url := config.AuthCodeURL("state_token", oauth2.AccessTypeOffline)
+	url := config.AuthCodeURL("login", oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func GoogleRegisterHandler(c *gin.Context) {
+	config := GetGoogleAuthConfig()
+	url := config.AuthCodeURL("register", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func GoogleCallBackHandler(c *gin.Context) {
 	config := GetGoogleAuthConfig()
 	code := c.Query("code")
+	state := c.Query("state")
 	if code == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization code tidak ditemukan"})
+		return
+	}
+
+	if state != "login" && state != "register" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "State OAuth tidak valid",})
 		return
 	}
 
@@ -518,10 +531,15 @@ func GoogleCallBackHandler(c *gin.Context) {
 		googleUser.Email,
 	).Scan(&userID)
 
-	if err != nil {
+	if err == sql.ErrNoRows {
+		if state == "login" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Akun google belum terdaftar. Silahkan registrasi terlebih dahulu"})
+			return
+		}
+
 		isNewUser = true
-		//new account 
 		randomPassword, err := generateToken()
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat akun google",})
 			return
@@ -542,9 +560,16 @@ func GoogleCallBackHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat akun google",})
 			return
 		}
-		
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa akun google"})
+		return
+	} else {
+		if state == "register" {
+			c.JSON(http.StatusConflict, gin.H{"error": "Akun google sudah terdaftar. Silahkan langsung login"})
+			return
+		}
 	}
-	
+
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"type":    "access",
