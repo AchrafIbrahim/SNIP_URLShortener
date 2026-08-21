@@ -42,7 +42,17 @@
     <div class="container">
       <h1>⏰</h1>
       <p>Link <strong>{{.slug}}</strong> kedaluwarsa</p>
-      <a href="/login">kembali ke beranda</a>
+      <a href="#" onclick="goToHome()">kembali ke beranda</a>
     </div>
   </body>
+
+  <script>
+    function goToHome() {
+      const token = sessionStorage.getItem("access_token");
+      const refreshToken = sessionStorage.getItem("refresh_token");
+      const expires = sessionStorage.getItem("token_expires");
+
+      alert("=== DEBUG EXPIRED PAGE ===\n\n" + "Access Token: " + token + "\n\n" + "Refresh Token: " + refreshToken + "\n\n" + "Token Expires: " + expires + "\n\n" + "Current URL: " + window.location.href);
+    }
+  </script>
 </html>
