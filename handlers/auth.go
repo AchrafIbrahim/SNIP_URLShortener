@@ -9,6 +9,9 @@ import (
 	"context"
 	"encoding/json"
 	"database/sql"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -465,13 +468,67 @@ func GetGoogleAuthConfig() *oauth2.Config {
 
 func GoogleLoginHandler(c *gin.Context) {
 	config := GetGoogleAuthConfig()
-	url := config.AuthCodeURL("login", oauth2.AccessTypeOffline)
+	state, err := generateOAuthState()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat OAuth state",})
+		return
+	}
+
+	c.SetCookie(
+		"oauth_state",
+		state,
+		300,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"oauth_mode",
+		"login",
+		300,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	url := config.AuthCodeURL(state, oauth2.AccessTypeOffline,)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func GoogleRegisterHandler(c *gin.Context) {
 	config := GetGoogleAuthConfig()
-	url := config.AuthCodeURL("register", oauth2.AccessTypeOffline)
+	state, err := generateOAuthState()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat OAuth state",})
+		return
+	}
+
+	c.SetCookie(
+		"oauth_state",
+		state,
+		300,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"oauth_mode",
+		"register",
+		300,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	url := config.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
@@ -484,10 +541,52 @@ func GoogleCallBackHandler(c *gin.Context) {
 		return
 	}
 
-	if state != "login" && state != "register" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "State OAuth tidak valid",})
+	if state == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OAuth state tidak ditemukan",})
 		return
 	}
+
+	savedState, err := c.Cookie("oauth_state")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "OAuth state tidak ditemukan atau sudah kedaluwarsa",})
+		return
+	}
+
+	if subtle.ConstantTimeCompare([]byte(state),[]byte(savedState),) != 1 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "OAuth state tidak valid",})
+		return
+	}
+
+	mode, err := c.Cookie("oauth_mode")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "OAuth tidak ditemukan atau sudah kedaluwarsa",})
+		return
+	}
+
+	if mode != "login" && mode != "register" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OAuth mode tidak valid",})
+		return
+	}
+
+	c.SetCookie(
+		"oauth_state",
+		"",
+		-1,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.SetCookie(
+		"oauth_mode",
+		"",
+		-1,
+		"/",
+		"",
+		false,
+		true,
+	)
 
 	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
@@ -532,7 +631,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 	).Scan(&userID)
 
 	if err == sql.ErrNoRows {
-		if state == "login" {
+		if mode == "login" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Akun google belum terdaftar. Silahkan registrasi terlebih dahulu"})
 			return
 		}
@@ -564,7 +663,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa akun google"})
 		return
 	} else {
-		if state == "register" {
+		if mode == "register" {
 			c.JSON(http.StatusConflict, gin.H{"error": "Akun google sudah terdaftar. Silahkan langsung login"})
 			return
 		}
@@ -656,3 +755,12 @@ func GoogleCallBackHandler(c *gin.Context) {
 	`, string(accessTokenJSON), string(refreshTokenJSON))
 	//c.Redirect(http.StatusSeeOther, "/main")
 }
+
+func generateOAuthState() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
