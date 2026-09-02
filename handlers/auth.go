@@ -631,8 +631,8 @@ func GoogleCallBackHandler(c *gin.Context) {
 	).Scan(&userID)
 
 	if err == sql.ErrNoRows {
-		if mode == "login" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Akun google belum terdaftar. Silahkan registrasi terlebih dahulu"})
+		if state == "login" {
+			c.Redirect(http.StatusSeeOther, "/oauth-error?type=not_registered&from=login",)
 			return
 		}
 
