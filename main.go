@@ -103,7 +103,7 @@ func main() {
 		case "already_registered":
 			c.File("./templates/oauth_error_register.html")
 		default:
-			c.File("./templates/oauth_error.html")
+			c.File("./templates/oauth_error.html") 
 		}
 	})
 
