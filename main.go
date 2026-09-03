@@ -96,7 +96,15 @@ func main() {
 	r.POST("/resend-verification", handlers.ResendVerificationEmail)
 	r.POST("/refresh-token", handlers.RefreshToken)
 	r.GET("/oauth-error", func(c *gin.Context){
-		c.File("./templates/oauth_error.html")
+		errorType := c.Query("type")
+		switch errorType{
+		case "not_registered":
+			c.File("./templates/oauth_error_login.html")
+		case "already_registered":
+			c.File("./templates/oauth_error_register.html")
+		default:
+			c.File("./templates/oauth_error.html")
+		}
 	})
 
 

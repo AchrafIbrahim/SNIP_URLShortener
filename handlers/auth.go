@@ -664,7 +664,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 		return
 	} else {
 		if mode == "register" {
-			c.JSON(http.StatusConflict, gin.H{"error": "Akun google sudah terdaftar. Silahkan langsung login"})
+			c.Redirect(http.StatusSeeOther, "/oauth-error?type=already_registered&from=register",)
 			return
 		}
 	}
