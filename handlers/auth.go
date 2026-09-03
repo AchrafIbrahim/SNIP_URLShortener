@@ -631,7 +631,7 @@ func GoogleCallBackHandler(c *gin.Context) {
 	).Scan(&userID)
 
 	if err == sql.ErrNoRows {
-		if state == "login" {
+		if mode == "login" {
 			c.Redirect(http.StatusSeeOther, "/oauth-error?type=not_registered&from=login",)
 			return
 		}

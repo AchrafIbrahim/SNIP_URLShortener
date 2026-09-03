@@ -95,6 +95,9 @@ func main() {
 	r.POST("/reset-password", handlers.ResetPassword)
 	r.POST("/resend-verification", handlers.ResendVerificationEmail)
 	r.POST("/refresh-token", handlers.RefreshToken)
+	r.GET("/oauth-error", func(c *gin.Context){
+		c.File("./templates/oauth_error.html")
+	})
 
 
 
