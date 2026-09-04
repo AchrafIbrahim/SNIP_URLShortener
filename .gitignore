@@ -8,3 +8,5 @@ git-token.txt
 *.pem
 credentials.json
 secrets.json
+bfg.jar
+*.jar
